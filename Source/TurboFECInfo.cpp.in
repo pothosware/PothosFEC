@@ -1,0 +1,22 @@
+// Copyright (c) 2020 Nicholas Corgan
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+#include <Pothos/Plugin.hpp>
+
+#include <json.hpp>
+
+static std::string getTurboFECInfoJSON()
+{
+    nlohmann::json topObject;
+    auto& fecInfo = topObject["FEC Info"];
+    fecInfo["TurboFEC Version"] = "@TURBOFEC_VERSION@";
+
+    return topObject.dump();
+}
+
+pothos_static_block(registerTurboFECInfo)
+{
+    Pothos::PluginRegistry::addCall(
+        "/devices/fec/info",
+        &getTurboFECInfoJSON);
+}

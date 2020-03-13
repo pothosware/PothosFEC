@@ -39,6 +39,7 @@ POTHOS_MODULE_UTIL(
     TARGET FECBlocks
     SOURCES
         Source/LTEConvEncoder.cpp
+        Source/Utility.cpp
         Source/codes.c
         ${CMAKE_CURRENT_BINARY_DIR}/TurboFECInfo.cpp
     LIBRARIES

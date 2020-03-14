@@ -9,8 +9,8 @@
 
 void throwOnErrCode(int errCode)
 {
-    if(errCode)
+    if(errCode < 0)
     {
-        throw Pothos::RuntimeException(std::strerror(errCode));
+        throw Pothos::RuntimeException(std::strerror(-errCode));
     }
 }

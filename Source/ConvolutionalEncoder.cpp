@@ -1,6 +1,8 @@
 // Copyright (c) 2020 Nicholas Corgan
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "Utility.hpp"
+
 #include <Pothos/Exception.hpp>
 #include <Pothos/Framework.hpp>
 
@@ -22,28 +24,31 @@ public:
 
     void work() override
     {
-        const auto elems = this->workInfo().minElements;
-        if(0 == elems)
-        {
-            return;
-        }
-
         if(!_pConvCode)
         {
             throw Pothos::AssertionViolationException("ConvolutionalEncoderBase::work() called without setting _pConvCode");
         }
 
+        const auto elems = this->workInfo().minElements;
+        if(elems < static_cast<size_t>(_pConvCode->len))
+        {
+            return;
+        }
+
         auto* input = this->input(0);
         auto* output = this->output(0);
 
-        _pConvCode->len = static_cast<int>(elems);
-        ::lte_conv_encode(
-            _pConvCode,
-            input->buffer(),
-            output->buffer());
+        int encodeRet = ::lte_conv_encode(
+                            _pConvCode,
+                            input->buffer(),
+                            output->buffer());
+        throwOnErrCode(encodeRet);
 
-        input->consume(elems);
-        output->produce(elems);
+        if(encodeRet > 0)
+        {
+            input->consume(_pConvCode->len);
+            output->produce(encodeRet);
+        }
     }
 
 protected:

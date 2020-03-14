@@ -45,6 +45,8 @@ POTHOS_MODULE_UTIL(
         Source/StandardConvolutionalEncoders.cpp
         Source/Utility.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/TurboFECInfo.cpp
+
+        Testing/TestStandardConvolutionalEncoders.cpp
     LIBRARIES
         ${TURBOFEC_LIBRARIES}
     ENABLE_DOCS ON

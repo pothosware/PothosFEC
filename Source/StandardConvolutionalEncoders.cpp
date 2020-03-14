@@ -19,22 +19,34 @@ public:
         auto mapIter = convCodeMap.find(standard);
         if(convCodeMap.end() != mapIter)
         {
-            return new StandardConvolutionalEncoder(const_cast<lte_conv_code*>(mapIter->second));
+            return new StandardConvolutionalEncoder(
+                           standard,
+                           const_cast<lte_conv_code*>(mapIter->second));
         }
 
         throw Pothos::AssertionViolationException("Invalid standard");
     }
 
-    StandardConvolutionalEncoder(lte_conv_code* pConvCode):
-        ConvolutionalEncoderBase(pConvCode)
+    StandardConvolutionalEncoder(const std::string& standard, lte_conv_code* pConvCode):
+        ConvolutionalEncoderBase(pConvCode),
+        _standard(standard)
     {
         this->registerCall(this, POTHOS_FCN_TUPLE(StandardConvolutionalEncoder, overlay));
+        this->registerCall(this, POTHOS_FCN_TUPLE(StandardConvolutionalEncoder, standard));
     }
 
     std::string overlay() const
     {
         return convCodeMapOverlay();
     }
+
+    std::string standard() const
+    {
+        return _standard;
+    }
+
+private:
+    std::string _standard;
 };
 
 #define REGISTRY(pathName, key) \

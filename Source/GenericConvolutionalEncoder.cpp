@@ -11,7 +11,6 @@
 #include <cstring>
 
 // TODO: all fields
-// TODO: handle struct storing both gen and rgen
 // TODO: register calls, changed signals
 
 class GenericConvolutionalEncoder: public ConvolutionalEncoderBase

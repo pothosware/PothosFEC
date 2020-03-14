@@ -18,8 +18,8 @@ const std::unordered_map<std::string, const lte_conv_code*>& getConvCodeMap()
     static const std::unordered_map<std::string, const lte_conv_code*> ConvCodeMap =
     {
         {"GSM XCCH", get_gsm_conv_xcch()},
-        {"GPRS_CS2", get_gsm_conv_cs2()},
-        {"GPRS_CS3", get_gsm_conv_cs3()},
+        {"GPRS CS2", get_gsm_conv_cs2()},
+        {"GPRS CS3", get_gsm_conv_cs3()},
         {"GSM RACH", get_gsm_conv_rach()},
         {"GSM SCH", get_gsm_conv_sch()},
         {"GSM TCH-FR", get_gsm_conv_tch_fr()},

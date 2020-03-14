@@ -1,54 +1,65 @@
+// Adapted from: https://github.com/ttsou/turbofec/blob/master/tests/codes.c
+
+#include "ConvCodes.h"
+
 #include <stdint.h>
-#include "turbofec/conv.h"
-#include "codes.h"
+
+#define GETCODE(x) \
+    const struct lte_conv_code* get_ ## x() { return &x; }
 
 /* GSM XCCH */
-const struct lte_conv_code gsm_conv_xcch = {
+static const struct lte_conv_code gsm_conv_xcch = {
 	.n = 2,
 	.k = 5,
 	.len = 224,
 	.gen = { 023, 033 },
 };
+GETCODE(gsm_conv_xcch)
 
 /* GPRS CS2 */
-const struct lte_conv_code gsm_conv_cs2 = {
+static const struct lte_conv_code gsm_conv_cs2 = {
 	.n = 2,
 	.k = 5,
 	.len = 290,
 	.gen = { 023, 033 },
 };
+GETCODE(gsm_conv_cs2)
 
 /* GPRS CS3 */
-const struct lte_conv_code gsm_conv_cs3 = {
+static const struct lte_conv_code gsm_conv_cs3 = {
 	.n = 2,
 	.k = 5,
 	.len = 334,
 	.gen = { 023, 033 },
 };
+GETCODE(gsm_conv_cs3)
 
 /* GSM RACH */
-const struct lte_conv_code gsm_conv_rach = {
+static const struct lte_conv_code gsm_conv_rach = {
 	.n = 2,
 	.k = 5,
 	.len = 14,
 	.gen = { 023, 033 },
 };
+GETCODE(gsm_conv_rach)
 
 /* GSM SCH */
-const struct lte_conv_code gsm_conv_sch = {
+static const struct lte_conv_code gsm_conv_sch = {
 	.n = 2,
 	.k = 5,
 	.len = 35,
 	.gen = { 023, 033 },
 };
+GETCODE(gsm_conv_sch)
 
 /* GSM TCH-FR */
-const struct lte_conv_code gsm_conv_tch_fr = {
+static const struct lte_conv_code gsm_conv_tch_fr = {
 	.n = 2,
 	.k = 5,
 	.len = 185,
 	.gen = { 023, 033 },
 };
+GETCODE(gsm_conv_tch_fr)
 
 static int tch_hr_puncture[] = {
 	  1,   4,   7,  10,  13,  16,  19,  22,  25,  28,  31,  34,
@@ -63,13 +74,14 @@ static int tch_hr_puncture[] = {
 };
 
 /* GSM TCH-HR */
-const struct lte_conv_code gsm_conv_tch_hr = {
+static const struct lte_conv_code gsm_conv_tch_hr = {
 	.n = 3,
 	.k = 7,
 	.len = 98,
 	.gen = { 0133, 0145, 0175 },
 	.punc = tch_hr_puncture,
 };
+GETCODE(gsm_conv_tch_hr)
 
 static int tch_afs_12_2_puncture[] = {
 	321, 325, 329, 333, 337, 341, 345, 349, 353, 357, 361, 363,
@@ -81,7 +93,7 @@ static int tch_afs_12_2_puncture[] = {
 };
 
 /* GSM TCH-AFS12.2 */
-const struct lte_conv_code gsm_conv_tch_afs_12_2 = {
+static const struct lte_conv_code gsm_conv_tch_afs_12_2 = {
 	.n = 2,
 	.k = 5,
 	.len = 250,
@@ -89,6 +101,7 @@ const struct lte_conv_code gsm_conv_tch_afs_12_2 = {
 	.gen = { 020, 033 },
 	.punc = tch_afs_12_2_puncture,
 };
+GETCODE(gsm_conv_tch_afs_12_2)
 
 static int tch_afs_10_2_puncture[] = {
 	  1,   4,   7,  10,  16,  19,  22,  28,  31,  34,  40,  43,
@@ -111,7 +124,7 @@ static int tch_afs_10_2_puncture[] = {
 };
 
 /* GSM TCH-AFS10.2 */
-const struct lte_conv_code gsm_conv_tch_afs_10_2 = {
+static const struct lte_conv_code gsm_conv_tch_afs_10_2 = {
 	.n = 3,
 	.k = 5,
 	.len = 210,
@@ -119,6 +132,7 @@ const struct lte_conv_code gsm_conv_tch_afs_10_2 = {
 	.gen = { 033, 025, 020 },
 	.punc = tch_afs_10_2_puncture,
 };
+GETCODE(gsm_conv_tch_afs_10_2)
 
 static int tch_afs_7_95_puncture[] = {
 	  1,   2,   4,   5,   8,  22,  70, 118, 166, 214, 262, 310,
@@ -130,7 +144,7 @@ static int tch_afs_7_95_puncture[] = {
 };
 
 /* GSM TCH-AFS7.95 */
-const struct lte_conv_code gsm_conv_tch_afs_7_95 = {
+static const struct lte_conv_code gsm_conv_tch_afs_7_95 = {
 	.n = 3,
 	.k = 7,
 	.len = 165,
@@ -138,6 +152,7 @@ const struct lte_conv_code gsm_conv_tch_afs_7_95 = {
 	.gen = { 0100, 0145, 0175 },
 	.punc = tch_afs_7_95_puncture,
 };
+GETCODE(gsm_conv_tch_afs_7_95)
 
 static int tch_afs_7_4_puncture[] = {
 	  0, 355, 361, 367, 373, 379, 385, 391, 397, 403, 409, 415,
@@ -146,7 +161,7 @@ static int tch_afs_7_4_puncture[] = {
 };
 
 /* GSM TCH-AFS7.4 */
-const struct lte_conv_code gsm_conv_tch_afs_7_4 = {
+static const struct lte_conv_code gsm_conv_tch_afs_7_4 = {
 	.n = 3,
 	.k = 5,
 	.len = 154,
@@ -154,6 +169,7 @@ const struct lte_conv_code gsm_conv_tch_afs_7_4 = {
 	.gen = { 033, 025, 020 },
 	.punc = tch_afs_7_4_puncture,
 };
+GETCODE(gsm_conv_tch_afs_7_4)
 
 static int tch_afs_6_7_puncture[] = {
 	  1,   3,   7,  11,  15,  27,  39,  55,  67,  79,  95, 107,
@@ -171,7 +187,7 @@ static int tch_afs_6_7_puncture[] = {
 };
 
 /* GSM TCH-AFS6.7 */
-const struct lte_conv_code gsm_conv_tch_afs_6_7 = {
+static const struct lte_conv_code gsm_conv_tch_afs_6_7 = {
 	.n = 4,
 	.k = 5,
 	.len = 140,
@@ -179,6 +195,7 @@ const struct lte_conv_code gsm_conv_tch_afs_6_7 = {
 	.gen = { 033, 025, 020, 020 },
 	.punc = tch_afs_6_7_puncture,
 };
+GETCODE(gsm_conv_tch_afs_6_7)
 
 static int tch_afs_5_9_puncture[] = {
 	  0,   1,   3,   5,   7,  11,  15,  31,  47,  63,  79,  95,
@@ -191,7 +208,7 @@ static int tch_afs_5_9_puncture[] = {
 };
 
 /* GSM TCH-AFS5.9 */
-const struct lte_conv_code gsm_conv_tch_afs_5_9 = {
+static const struct lte_conv_code gsm_conv_tch_afs_5_9 = {
 	.n = 4,
 	.k = 7,
 	.len = 124,
@@ -199,6 +216,7 @@ const struct lte_conv_code gsm_conv_tch_afs_5_9 = {
 	.gen = { 0133, 0145, 0100, 0100 },
 	.punc = tch_afs_5_9_puncture,
 };
+GETCODE(gsm_conv_tch_afs_5_9)
 
 static int tch_ahs_7_95_puncture[] = {
 	  1,   3,   5,   7,  11,  15,  19,  23,  27,  31,  35,  43,
@@ -212,7 +230,7 @@ static int tch_ahs_7_95_puncture[] = {
 };
 
 /* GSM TCH-AHS7.95 */
-const struct lte_conv_code gsm_conv_tch_ahs_7_95 = {
+static const struct lte_conv_code gsm_conv_tch_ahs_7_95 = {
 	.n = 2,
 	.k = 5,
 	.len = 129,
@@ -220,6 +238,7 @@ const struct lte_conv_code gsm_conv_tch_ahs_7_95 = {
 	.gen = { 020, 033 },
 	.punc = tch_ahs_7_95_puncture,
 };
+GETCODE(gsm_conv_tch_ahs_7_95)
 
 static int tch_ahs_7_4_puncture[] = {
 	  1,   3,   7,  11,  19,  23,  27,  35,  39,  43,  51,  55,
@@ -231,7 +250,7 @@ static int tch_ahs_7_4_puncture[] = {
 };
 
 /* GSM TCH-AHS7.4 */
-const struct lte_conv_code gsm_conv_tch_ahs_7_4 = {
+static const struct lte_conv_code gsm_conv_tch_ahs_7_4 = {
 	.n = 2,
 	.k = 5,
 	.len = 126,
@@ -239,6 +258,7 @@ const struct lte_conv_code gsm_conv_tch_ahs_7_4 = {
 	.gen = { 020, 033 },
 	.punc = tch_ahs_7_4_puncture,
 };
+GETCODE(gsm_conv_tch_ahs_7_4)
 
 static int tch_ahs_6_7_puncture[] = {
 	  1,   3,   9,  19,  29,  39,  49,  59,  69,  79,  89,  99,
@@ -248,7 +268,7 @@ static int tch_ahs_6_7_puncture[] = {
 };
 
 /* GSM TCH-AHS6.7 */
-const struct lte_conv_code gsm_conv_tch_ahs_6_7 = {
+static const struct lte_conv_code gsm_conv_tch_ahs_6_7 = {
 	.n = 2,
 	.k = 5,
 	.len = 116,
@@ -256,6 +276,7 @@ const struct lte_conv_code gsm_conv_tch_ahs_6_7 = {
 	.gen = { 020, 033 },
 	.punc = tch_ahs_6_7_puncture,
 };
+GETCODE(gsm_conv_tch_ahs_6_7)
 
 static int tch_ahs_5_9_puncture[] = {
 	  1,  15,  71, 127, 139, 151, 163, 175, 187, 195, 203, 211,
@@ -263,7 +284,7 @@ static int tch_ahs_5_9_puncture[] = {
 };
 
 /* GSM TCH-AHS5.9 */
-const struct lte_conv_code gsm_conv_tch_ahs_5_9 = {
+static const struct lte_conv_code gsm_conv_tch_ahs_5_9 = {
 	.n = 2,
 	.k = 5,
 	.len = 108,
@@ -271,6 +292,7 @@ const struct lte_conv_code gsm_conv_tch_ahs_5_9 = {
 	.gen = { 020, 033 },
 	.punc = tch_ahs_5_9_puncture,
 };
+GETCODE(gsm_conv_tch_ahs_5_9)
 
 static int tch_ahs_5_15_puncture[] = {
 	  0,   1,   3,   4,   6,   9,  12,  15,  18,  21,  27,  33,
@@ -284,7 +306,7 @@ static int tch_ahs_5_15_puncture[] = {
 };
 
 /* GSM TCH-AHS5.15 */
-const struct lte_conv_code gsm_conv_tch_ahs_5_15 = {
+static const struct lte_conv_code gsm_conv_tch_ahs_5_15 = {
 	.n = 3,
 	.k = 5,
 	.len = 97,
@@ -292,6 +314,7 @@ const struct lte_conv_code gsm_conv_tch_ahs_5_15 = {
 	.gen = { 033, 025, 020 },
 	.punc = tch_ahs_5_15_puncture,
 };
+GETCODE(gsm_conv_tch_ahs_5_15)
 
 static int tch_ahs_4_75_puncture[] = {
 	  1,   2,   4,   5,   7,   8,  10,  13,  16,  22,  28,  34,
@@ -304,7 +327,7 @@ static int tch_ahs_4_75_puncture[] = {
 };
 
 /* GSM TCH-AHS4.75 */
-const struct lte_conv_code gsm_conv_tch_ahs_4_75 = {
+static const struct lte_conv_code gsm_conv_tch_ahs_4_75 = {
 	.n = 3,
 	.k = 7,
 	.len = 89,
@@ -312,21 +335,24 @@ const struct lte_conv_code gsm_conv_tch_ahs_4_75 = {
 	.gen = { 0100, 0145, 0175 },
 	.punc = tch_ahs_4_75_puncture,
 };
+GETCODE(gsm_conv_tch_ahs_4_75)
 
 /* WiMax FCH */
-const struct lte_conv_code wimax_conv_fch = {
+static const struct lte_conv_code wimax_conv_fch = {
 	.n = 2,
 	.k = 7,
 	.len = 48,
 	.gen = { 0171, 0133 },
 	.term = CONV_TERM_TAIL_BITING,
 };
+GETCODE(wimax_conv_fch)
 
 /* LTE PBCH */
-const struct lte_conv_code lte_conv_pbch = {
+static const struct lte_conv_code lte_conv_pbch = {
 	.n = 3,
 	.k = 7,
 	.len = 512,
 	.gen = { 0133, 0171, 0165 },
 	.term = CONV_TERM_TAIL_BITING,
 };
+GETCODE(lte_conv_pbch)

@@ -28,7 +28,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/Source
     ${CMAKE_CURRENT_SOURCE_DIR}/Testing
     ${JSON_HPP_INCLUDE_DIR}
-    ${TurboFEC_INCLUDE_DIRS})
+    ${TURBOFEC_INCLUDE_DIRS})
 
 configure_file(
     Source/TurboFECInfo.cpp.in
@@ -40,10 +40,10 @@ POTHOS_MODULE_UTIL(
     SOURCES
         Source/ConvolutionalEncoder.cpp
         Source/Utility.cpp
-        Source/codes.c
+        Source/ConvCodes.c
         ${CMAKE_CURRENT_BINARY_DIR}/TurboFECInfo.cpp
     LIBRARIES
-        ${TurboFEC_LIBRARIES}
+        ${TURBOFEC_LIBRARIES}
     ENABLE_DOCS ON
     DESTINATION fec
 )

@@ -7,30 +7,64 @@
 #include <Pothos/Framework.hpp>
 
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 extern "C"
 {
+#include "ConvCodes.h"
 #include <turbofec/conv.h>
 }
 
-class ConvolutionalEncoderBase: public Pothos::Block
+static const std::unordered_map<std::string, const lte_conv_code*> ConvCodeMap =
+{
+    {"GSM XCCH", get_gsm_conv_xcch()},
+    {"GPRS_CS2", get_gsm_conv_cs2()},
+    {"GPRS_CS3", get_gsm_conv_cs3()},
+    {"GSM_CONV_RACH", get_gsm_conv_rach()},
+    {"GSM SCH", get_gsm_conv_sch()},
+    {"GSM TCH-FR", get_gsm_conv_tch_fr()},
+    {"GSM TCH-HR", get_gsm_conv_tch_hr()},
+    {"GSM TCH-AFS12.2", get_gsm_conv_tch_afs_12_2()},
+    {"GSM TCH-AFS10.2", get_gsm_conv_tch_afs_10_2()},
+    {"GSM TCH-AFS7.95", get_gsm_conv_tch_afs_7_95()},
+    {"GSM TCH-AFS7.4", get_gsm_conv_tch_afs_7_4()},
+    {"GSM TCH-AFS6.7", get_gsm_conv_tch_afs_6_7()},
+    {"GSM TCH-AFS5.9", get_gsm_conv_tch_afs_5_9()},
+    //{"", get_gsm_conv_tch_afs_5_15()},
+    //{"", get_gsm_conv_tch_afs_4_75()},
+    {"GSM TCH-AHS7.95", get_gsm_conv_tch_ahs_7_95()},
+    {"GSM TCH-AHS7.4", get_gsm_conv_tch_ahs_7_4()},
+    {"GSM TCH-AHS6.7", get_gsm_conv_tch_ahs_6_7()},
+    {"GSM TCH-AHS5.9", get_gsm_conv_tch_ahs_5_9()},
+    {"WiMax FCH", get_wimax_conv_fch()},
+    //{"", get_gmr1_conv_tch3_speech()},
+    {"LTE PBCH", get_lte_conv_pbch()},
+    //{"", get_conv_trunc()},
+};
+
+class ConvolutionalEncoder: public Pothos::Block
 {
 public:
-    ConvolutionalEncoderBase():
+    ConvolutionalEncoder(lte_conv_code* pConvCode):
         Pothos::Block(),
-        _pConvCode(nullptr)
+        _pConvCode(pConvCode)
     {
+        if(!_pConvCode)
+        {
+            throw Pothos::AssertionViolationException("Factory passed in a null lte_conv_code");
+        }
+
         this->setupInput(0, "uint8");
         this->setupOutput(0, "uint8");
 
-        this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionalEncoderBase, N));
-        this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionalEncoderBase, K));
-        this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionalEncoderBase, length));
-        this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionalEncoderBase, recursiveGeneratorPolynomial));
-        this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionalEncoderBase, generatorPolynomial));
-        this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionalEncoderBase, puncture));
-        this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionalEncoderBase, terminationType));
+        this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionalEncoder, N));
+        this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionalEncoder, K));
+        this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionalEncoder, length));
+        this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionalEncoder, recursiveGeneratorPolynomial));
+        this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionalEncoder, generatorPolynomial));
+        this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionalEncoder, puncture));
+        this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionalEncoder, terminationType));
 
         this->registerProbe("N");
         this->registerProbe("K");
@@ -104,7 +138,7 @@ public:
     {
         if(!_pConvCode)
         {
-            throw Pothos::AssertionViolationException("ConvolutionalEncoderBase::work() called without setting _pConvCode");
+            throw Pothos::AssertionViolationException("ConvolutionalEncoder::work() called without setting _pConvCode");
         }
 
         const auto elems = this->workInfo().minElements;
@@ -132,3 +166,26 @@ public:
 protected:
     lte_conv_code* _pConvCode;
 };
+
+//
+// Factory/egistration
+//
+
+static Pothos::Block* makeConvolutionalEncoder(const std::string& name)
+{
+    auto mapIter = ConvCodeMap.find(name);
+    if(ConvCodeMap.end() != mapIter)
+    {
+        // We know this won't be modified, but the class stores it non-const
+        // to support a sublcass that does modify it.
+        auto* pConvCode = const_cast<lte_conv_code*>(mapIter->second);
+
+        return new ConvolutionalEncoder(pConvCode);
+    }
+
+    throw Pothos::InvalidArgumentException("Invalid code", name);
+}
+
+static Pothos::BlockRegistry registerConvolutionalEncoder(
+    "/fec/convolutional_encoder",
+    Pothos::Callable(&makeConvolutionalEncoder));

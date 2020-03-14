@@ -14,3 +14,5 @@ extern "C"
 const std::unordered_map<std::string, const lte_conv_code*>& getConvCodeMap();
 
 std::string convCodeMapOverlay();
+
+// TODO: conv code field compatibility function

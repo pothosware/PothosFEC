@@ -9,12 +9,12 @@ extern "C"
 #include <turbofec/conv.h>
 }
 
-class LTEConvEncoderBase: public Pothos::Block
+class ConvolutionalEncoderBase: public Pothos::Block
 {
 public:
-    LTEConvEncoderBase():
+    ConvolutionalEncoderBase():
         Pothos::Block(),
-        _pLTEConvCode(nullptr)
+        _pConvCode(nullptr)
     {
         this->setupInput(0, "uint8");
         this->setupOutput(0, "uint8");
@@ -28,17 +28,17 @@ public:
             return;
         }
 
-        if(!_pLTEConvCode)
+        if(!_pConvCode)
         {
-            throw Pothos::AssertionViolationException("LTEConvEncoderBase::work() called without setting _pLTEConvCode");
+            throw Pothos::AssertionViolationException("ConvolutionalEncoderBase::work() called without setting _pConvCode");
         }
 
         auto* input = this->input(0);
         auto* output = this->output(0);
 
-        _pLTEConvCode->len = static_cast<int>(elems);
+        _pConvCode->len = static_cast<int>(elems);
         ::lte_conv_encode(
-            _pLTEConvCode,
+            _pConvCode,
             input->buffer(),
             output->buffer());
 
@@ -47,5 +47,5 @@ public:
     }
 
 protected:
-    lte_conv_code* _pLTEConvCode;
+    lte_conv_code* _pConvCode;
 };

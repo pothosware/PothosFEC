@@ -38,9 +38,10 @@ include(PothosUtil)
 POTHOS_MODULE_UTIL(
     TARGET FECBlocks
     SOURCES
-        Source/ConvolutionalEncoder.cpp
-        Source/Utility.cpp
         Source/ConvCodes.c
+        Source/ConvCommon.cpp
+        Source/ConvolutionalEncoderBase.cpp
+        Source/Utility.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/TurboFECInfo.cpp
     LIBRARIES
         ${TURBOFEC_LIBRARIES}

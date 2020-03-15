@@ -10,20 +10,36 @@
 #include <algorithm>
 #include <cstring>
 
-// TODO: all fields
-// TODO: register calls, changed signals
-
 class GenericConvolutionalEncoder: public ConvolutionalEncoderBase
 {
 public:
     GenericConvolutionalEncoder():
         ConvolutionalEncoderBase(nullptr)
     {
+        std::memset(&_convCode, 0, sizeof(_convCode));
         _pConvCode = &_convCode;
+
+        this->registerCall(this, POTHOS_FCN_TUPLE(GenericConvolutionalEncoder, setN));
+        this->registerCall(this, POTHOS_FCN_TUPLE(GenericConvolutionalEncoder, setK));
+        this->registerCall(this, POTHOS_FCN_TUPLE(GenericConvolutionalEncoder, setLength));
+        this->registerCall(this, POTHOS_FCN_TUPLE(GenericConvolutionalEncoder, setRecursiveGeneratorPolynomial));
+        this->registerCall(this, POTHOS_FCN_TUPLE(GenericConvolutionalEncoder, setGeneratorPolynomial));
+        this->registerCall(this, POTHOS_FCN_TUPLE(GenericConvolutionalEncoder, setPuncture));
+        this->registerCall(this, POTHOS_FCN_TUPLE(GenericConvolutionalEncoder, setTerminationType));
+
+        this->registerSignal("NChanged");
+        this->registerSignal("KChanged");
+        this->registerSignal("lengthChanged");
+        this->registerSignal("recursiveGeneratorPolynomialChanged");
+        this->registerSignal("generatorPolynomialChanged");
+        this->registerSignal("punctureChanged");
+        this->registerSignal("terminationTypeChanged");
 
         this->setN(2);
         this->setK(5);
         this->setLength(224);
+        this->setRecursiveGeneratorPolynomial(0);
+        this->setGeneratorPolynomial({});
         this->setPuncture({});
         this->setTerminationType("Flush");
     }
@@ -56,6 +72,34 @@ public:
         }
 
         _pConvCode->len = length;
+    }
+
+    void setRecursiveGeneratorPolynomial(int rgen)
+    {
+        if(rgen < 0)
+        {
+            throw Pothos::InvalidArgumentException("RGen must be >= 0");
+        }
+
+        _pConvCode->rgen = rgen;
+    }
+
+    void setGeneratorPolynomial(const std::vector<unsigned>& gen)
+    {
+        if(gen.size() > 4)
+        {
+            throw Pothos::InvalidArgumentException("Gen must be of size 0-4");
+        }
+
+        // This is stored as a static array of size 4.
+        std::memset(_pConvCode->gen, 0, sizeof(_pConvCode->gen));
+        if(!gen.empty())
+        {
+            std::memcpy(
+                _pConvCode->gen,
+                gen.data(),
+                (gen.size() * sizeof(unsigned)));
+        }
     }
 
     void setPuncture(const std::vector<int>& puncture)
@@ -97,6 +141,10 @@ public:
         else if("Tail-biting" == terminationType)
         {
             _pConvCode->term = ::CONV_TERM_TAIL_BITING;
+        }
+        else
+        {
+            throw Pothos::InvalidArgumentException("Invalid termination type: "+terminationType);
         }
     }
 

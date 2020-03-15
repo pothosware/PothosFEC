@@ -39,14 +39,13 @@ POTHOS_MODULE_UTIL(
     TARGET FECBlocks
     SOURCES
         Source/ConvCodes.c
-        Source/ConvCommon.cpp
         Source/ConvolutionBase.cpp
+        Source/Convolution.cpp
         Source/GenericConvolution.cpp
-        Source/StandardConvolution.cpp
         Source/Utility.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/TurboFECInfo.cpp
 
-        Testing/TestStandardConvolutionalEncoders.cpp
+        Testing/TestConvolution.cpp
     LIBRARIES
         ${TURBOFEC_LIBRARIES}
     ENABLE_DOCS ON

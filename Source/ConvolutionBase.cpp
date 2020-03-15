@@ -1,7 +1,6 @@
 // Copyright (c) 2020 Nicholas Corgan
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#include "ConvCommon.hpp"
 #include "ConvolutionBase.hpp"
 #include "Utility.hpp"
 

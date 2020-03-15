@@ -9,9 +9,8 @@
 #include <string>
 #include <vector>
 
-struct StandardEncoderTestParams
+struct StandardTestParams
 {
-    std::string blockRegistryPath;
     std::string standard;
     int expectedN;
     int expectedK;
@@ -21,10 +20,9 @@ struct StandardEncoderTestParams
     std::vector<int> expectedPuncture;
     std::string expectedTerminationType;
 };
-static const std::vector<StandardEncoderTestParams> allTestParams =
+static const std::vector<StandardTestParams> allTestParams =
 {
     {
-        "/fec/gsm_xcch_conv_encoder",
         "GSM XCCH",
         2,
         5,
@@ -35,7 +33,6 @@ static const std::vector<StandardEncoderTestParams> allTestParams =
         "Flush"
     },
     {
-        "/fec/gprs_cs2_conv_encoder",
         "GPRS CS2",
         2,
         5,
@@ -46,7 +43,6 @@ static const std::vector<StandardEncoderTestParams> allTestParams =
         "Flush"
     },
     {
-        "/fec/gprs_cs3_conv_encoder",
         "GPRS CS3",
         2,
         5,
@@ -57,7 +53,6 @@ static const std::vector<StandardEncoderTestParams> allTestParams =
         "Flush"
     },
     {
-        "/fec/gsm_rach_conv_encoder",
         "GSM RACH",
         2,
         5,
@@ -68,7 +63,6 @@ static const std::vector<StandardEncoderTestParams> allTestParams =
         "Flush"
     },
     {
-        "/fec/gsm_sch_conv_encoder",
         "GSM SCH",
         2,
         5,
@@ -79,7 +73,6 @@ static const std::vector<StandardEncoderTestParams> allTestParams =
         "Flush"
     },
     {
-        "/fec/gsm_tch_fr_conv_encoder",
         "GSM TCH-FR",
         2,
         5,
@@ -90,7 +83,6 @@ static const std::vector<StandardEncoderTestParams> allTestParams =
         "Flush"
     },
     {
-        "/fec/gsm_tch_hr_conv_encoder",
         "GSM TCH-HR",
         3,
         7,
@@ -111,7 +103,6 @@ static const std::vector<StandardEncoderTestParams> allTestParams =
         "Flush"
     },
     {
-        "/fec/gsm_tch_afs12-2_conv_encoder",
         "GSM TCH-AFS12.2",
         2,
         5,
@@ -128,7 +119,6 @@ static const std::vector<StandardEncoderTestParams> allTestParams =
         "Flush"
     },
     {
-        "/fec/gsm_tch_afs10-2_conv_encoder",
         "GSM TCH-AFS10.2",
         3,
         5,
@@ -158,37 +148,62 @@ static const std::vector<StandardEncoderTestParams> allTestParams =
     },
 };
 
+static void testBlockGetters(
+    const Pothos::Proxy& block,
+    const StandardTestParams& testParams)
+{
+    POTHOS_TEST_EQUAL(
+        testParams.standard,
+        block.call<std::string>("standard"));
+    POTHOS_TEST_EQUAL(
+        testParams.expectedN,
+        block.call<int>("N"));
+    POTHOS_TEST_EQUAL(
+        testParams.expectedK,
+        block.call<int>("K"));
+    POTHOS_TEST_EQUAL(
+        testParams.expectedLength,
+        block.call<int>("length"));
+    POTHOS_TEST_EQUALV(
+        testParams.expectedGen,
+        block.call<std::vector<int>>("generatorPolynomial"));
+    POTHOS_TEST_EQUAL(
+        testParams.expectedRGen,
+        block.call<int>("recursiveGeneratorPolynomial"));
+    POTHOS_TEST_EQUALV(
+        testParams.expectedPuncture,
+        block.call<std::vector<int>>("puncture"));
+    POTHOS_TEST_EQUAL(
+        testParams.expectedTerminationType,
+        block.call<std::string>("terminationType"));
+}
+
 POTHOS_TEST_BLOCK("/fec/tests", test_standard_conv_encoders)
 {
+    const std::string blockRegistryPath = "/fec/conv_encoder";
+
     for(const auto& testParams: allTestParams)
     {
-        std::cout << " * Testing " << testParams.blockRegistryPath << " ("
-                  << testParams.standard << ")..." << std::endl;
+        std::cout << " * Testing " << testParams.standard << "..." << std::endl;
 
-        auto block = Pothos::BlockRegistry::make(testParams.blockRegistryPath);
-        POTHOS_TEST_EQUAL(
-            testParams.standard,
-            block.call<std::string>("standard"));
-        POTHOS_TEST_EQUAL(
-            testParams.expectedN,
-            block.call<int>("N"));
-        POTHOS_TEST_EQUAL(
-            testParams.expectedK,
-            block.call<int>("K"));
-        POTHOS_TEST_EQUAL(
-            testParams.expectedLength,
-            block.call<int>("length"));
-        POTHOS_TEST_EQUALV(
-            testParams.expectedGen,
-            block.call<std::vector<int>>("generatorPolynomial"));
-        POTHOS_TEST_EQUAL(
-            testParams.expectedRGen,
-            block.call<int>("recursiveGeneratorPolynomial"));
-        POTHOS_TEST_EQUALV(
-            testParams.expectedPuncture,
-            block.call<std::vector<int>>("puncture"));
-        POTHOS_TEST_EQUAL(
-            testParams.expectedTerminationType,
-            block.call<std::string>("terminationType"));
+        auto block = Pothos::BlockRegistry::make(
+                         blockRegistryPath,
+                         testParams.standard);
+        testBlockGetters(block, testParams);
+    }
+}
+
+POTHOS_TEST_BLOCK("/fec/tests", test_standard_conv_decoders)
+{
+    const std::string blockRegistryPath = "/fec/conv_decoder";
+
+    for(const auto& testParams: allTestParams)
+    {
+        std::cout << " * Testing " << testParams.standard << "..." << std::endl;
+
+        auto block = Pothos::BlockRegistry::make(
+                         blockRegistryPath,
+                         testParams.standard);
+        testBlockGetters(block, testParams);
     }
 }

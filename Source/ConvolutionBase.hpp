@@ -16,7 +16,7 @@ extern "C"
 class ConvolutionBase: public Pothos::Block
 {
 public:
-    ConvolutionBase(lte_conv_code* pConvCode);
+    ConvolutionBase(lte_conv_code* pConvCode, bool isEncoder);
 
     virtual ~ConvolutionBase();
 
@@ -34,7 +34,14 @@ public:
 
     std::string terminationType() const;
 
+    void work() override;
+
 protected:
     lte_conv_code* _pConvCode;
     size_t _genArrLength;
+    bool _isEncoder;
+
+    void encoderWork();
+
+    void decoderWork();
 };

@@ -10,27 +10,28 @@
 
 #include <vector>
 
-class StandardConvolutionalEncoder: public ConvolutionBase
+class StandardConvolution: public ConvolutionBase
 {
 public:
-    static Pothos::Block* make(const std::string& standard)
+    static Pothos::Block* make(const std::string& standard, bool isEncoder)
     {
         const auto& convCodeMap = getConvCodeMap();
         auto mapIter = convCodeMap.find(standard);
         if(convCodeMap.end() != mapIter)
         {
-            return new StandardConvolutionalEncoder(
+            return new StandardConvolution(
                            standard,
-                           const_cast<lte_conv_code*>(mapIter->second));
+                           const_cast<lte_conv_code*>(mapIter->second),
+                           isEncoder);
         }
 
         throw Pothos::AssertionViolationException(
-                  "StandardConvolutionEncoder::make",
+                  "StandardConvolution::make",
                   "Invalid standard");
     }
 
-    StandardConvolutionalEncoder(const std::string& standard, lte_conv_code* pConvCode):
-        ConvolutionBase(pConvCode),
+    StandardConvolution(const std::string& standard, lte_conv_code* pConvCode, bool isEncoder):
+        ConvolutionBase(pConvCode, isEncoder),
         _standard(standard)
     {
         const auto& genArrLengthsMap = getGenArrLengthsMap();
@@ -42,12 +43,12 @@ public:
         else
         {
             throw Pothos::AssertionViolationException(
-                      "StandardConvolutionEncoder::StandardConvolutionEncoder",
+                      "StandardConvolution::StandardConvolution",
                       "Could not find GenArrLengthsMap entry for "+_standard);
         }
 
-        this->registerCall(this, POTHOS_FCN_TUPLE(StandardConvolutionalEncoder, overlay));
-        this->registerCall(this, POTHOS_FCN_TUPLE(StandardConvolutionalEncoder, standard));
+        this->registerCall(this, POTHOS_FCN_TUPLE(StandardConvolution, overlay));
+        this->registerCall(this, POTHOS_FCN_TUPLE(StandardConvolution, standard));
     }
 
     std::string overlay() const
@@ -67,10 +68,16 @@ private:
 #define REGISTRY(pathName, key) \
     Pothos::BlockRegistry( \
         "/fec/" pathName "_conv_encoder", \
-        Pothos::Callable(&StandardConvolutionalEncoder::make) \
-            .bind(key, 0))
+        Pothos::Callable(&StandardConvolution::make) \
+            .bind(key, 0) \
+            .bind(true, 1)), \
+    Pothos::BlockRegistry( \
+        "/fec/" pathName "_conv_decoder", \
+        Pothos::Callable(&StandardConvolution::make) \
+            .bind(key, 0) \
+            .bind(false, 1))
 
-static const std::vector<Pothos::BlockRegistry> standardConvEncoders =
+static const std::vector<Pothos::BlockRegistry> standardConvCoders =
 {
     REGISTRY("gsm_xcch",        "GSM XCCH"),
     REGISTRY("gprs_cs2",        "GPRS CS2"),

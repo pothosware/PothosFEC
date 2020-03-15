@@ -7,11 +7,15 @@
 
 #include <Pothos/Exception.hpp>
 
-ConvolutionBase::ConvolutionBase(lte_conv_code* pConvCode):
+ConvolutionBase::ConvolutionBase(lte_conv_code* pConvCode, bool isEncoder):
     Pothos::Block(),
     _pConvCode(pConvCode),
-    _genArrLength(4)
+    _genArrLength(4),
+    _isEncoder(isEncoder)
 {
+    this->setupInput(0, (_isEncoder ? "uint8" : "int8"));
+    this->setupOutput(0, "uint8");
+
     this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionBase, N));
     this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionBase, K));
     this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionBase, length));
@@ -95,4 +99,52 @@ std::string ConvolutionBase::terminationType() const
     }
 
     return ret;
+}
+
+void ConvolutionBase::work()
+{
+    if(_isEncoder) this->encoderWork();
+    else           this->decoderWork();
+}
+
+void ConvolutionBase::encoderWork()
+{
+    const auto elems = this->workInfo().minElements;
+    if(elems < static_cast<size_t>(_pConvCode->len))
+    {
+        return;
+    }
+
+    auto input = this->input(0);
+    auto output = this->output(0);
+
+    int encodeRet = ::lte_conv_encode(
+                         _pConvCode,
+                         input->buffer(),
+                         output->buffer());
+    throwOnErrCode(encodeRet);
+
+    input->consume(_pConvCode->len);
+    output->produce(encodeRet);
+}
+
+void ConvolutionBase::decoderWork()
+{
+    const auto elems = this->workInfo().minElements;
+    if(elems < static_cast<size_t>(_pConvCode->len))
+    {
+        return;
+    }
+
+    auto input = this->input(0);
+    auto output = this->output(0);
+
+    int decodeRet = ::lte_conv_decode(
+                         _pConvCode,
+                         input->buffer(),
+                         output->buffer());
+    throwOnErrCode(decodeRet);
+
+    input->consume(_pConvCode->len);
+    output->produce(decodeRet);
 }

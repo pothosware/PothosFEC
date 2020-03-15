@@ -41,8 +41,8 @@ POTHOS_MODULE_UTIL(
         Source/ConvCodes.c
         Source/ConvCommon.cpp
         Source/ConvolutionBase.cpp
-        Source/GenericConvolutionBase.cpp
-        Source/StandardConvolutionalEncoders.cpp
+        Source/GenericConvolution.cpp
+        Source/StandardConvolution.cpp
         Source/Utility.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/TurboFECInfo.cpp
 

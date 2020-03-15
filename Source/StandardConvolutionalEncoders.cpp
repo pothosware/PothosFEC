@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "ConvCommon.hpp"
-#include "ConvolutionalEncoderBase.hpp"
+#include "ConvolutionBase.hpp"
 #include "Utility.hpp"
 
 #include <Pothos/Callable.hpp>
@@ -10,7 +10,7 @@
 
 #include <vector>
 
-class StandardConvolutionalEncoder: public ConvolutionalEncoderBase
+class StandardConvolutionalEncoder: public ConvolutionBase
 {
 public:
     static Pothos::Block* make(const std::string& standard)
@@ -30,7 +30,7 @@ public:
     }
 
     StandardConvolutionalEncoder(const std::string& standard, lte_conv_code* pConvCode):
-        ConvolutionalEncoderBase(pConvCode),
+        ConvolutionBase(pConvCode),
         _standard(standard)
     {
         const auto& genArrLengthsMap = getGenArrLengthsMap();

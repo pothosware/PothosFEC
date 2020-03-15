@@ -13,10 +13,12 @@ extern "C"
 #include <string>
 #include <vector>
 
-class ConvolutionalEncoderBase: public Pothos::Block
+class ConvolutionBase: public Pothos::Block
 {
 public:
-    ConvolutionalEncoderBase(lte_conv_code* pConvCode);
+    ConvolutionBase(lte_conv_code* pConvCode);
+
+    virtual ~ConvolutionBase();
 
     int N() const;
 
@@ -31,8 +33,6 @@ public:
     std::vector<int> puncture() const;
 
     std::string terminationType() const;
-
-    void work() override;
 
 protected:
     lte_conv_code* _pConvCode;

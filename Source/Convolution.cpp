@@ -14,11 +14,14 @@ extern "C"
     #include "ConvCodes.h"
 };
 
+#include <map>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-static const std::unordered_map<std::string, const lte_conv_code*> ConvCodeMap =
+// Store this in a slightly less performant map so overlay() returns
+// an alphabetized list.
+static const std::map<std::string, const lte_conv_code*> ConvCodeMap =
 {
     {"GSM XCCH", get_gsm_conv_xcch()},
     {"GPRS CS2", get_gsm_conv_cs2()},
@@ -150,11 +153,35 @@ private:
     std::string _standard;
 };
 
+/*
+ * |PothosDoc Convolutional Encoder
+ *
+ * |category /FEC/Convolution
+ * |keywords fec lte gsm standard
+ * |factory /fec/conv_encoder(standard)
+ *
+ * |param standard[Standard] The configuration to use.
+ * |default "GSM XCCH"
+ * |widget ComboBox(editable=false)
+ * |preview enable
+ */
 static Pothos::BlockRegistry registerConvEncoder(
     "/fec/conv_encoder",
     Pothos::Callable(&Convolution::make)
         .bind(true, 1));
 
+/*
+ * |PothosDoc Convolutional Decoder
+ *
+ * |category /FEC/Convolution
+ * |keywords fec lte gsm standard
+ * |factory /fec/conv_decoder(standard)
+ *
+ * |param standard[Standard] The configuration to use.
+ * |default "GSM XCCH"
+ * |widget ComboBox(editable=false)
+ * |preview enable
+ */
 static Pothos::BlockRegistry registerConvDecoder(
     "/fec/conv_decoder",
     Pothos::Callable(&Convolution::make)

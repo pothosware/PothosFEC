@@ -36,4 +36,5 @@ public:
 
 protected:
     lte_conv_code* _pConvCode;
+    size_t _genArrLength;
 };

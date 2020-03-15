@@ -24,13 +24,28 @@ public:
                            const_cast<lte_conv_code*>(mapIter->second));
         }
 
-        throw Pothos::AssertionViolationException("Invalid standard");
+        throw Pothos::AssertionViolationException(
+                  "StandardConvolutionEncoder::make",
+                  "Invalid standard");
     }
 
     StandardConvolutionalEncoder(const std::string& standard, lte_conv_code* pConvCode):
         ConvolutionalEncoderBase(pConvCode),
         _standard(standard)
     {
+        const auto& genArrLengthsMap = getGenArrLengthsMap();
+        auto genArrLengthsIter = genArrLengthsMap.find(_standard);
+        if(genArrLengthsMap.end() != genArrLengthsIter)
+        {
+            _genArrLength = genArrLengthsIter->second;
+        }
+        else
+        {
+            throw Pothos::AssertionViolationException(
+                      "StandardConvolutionEncoder::StandardConvolutionEncoder",
+                      "Could not find GenArrLengthsMap entry for "+_standard);
+        }
+
         this->registerCall(this, POTHOS_FCN_TUPLE(StandardConvolutionalEncoder, overlay));
         this->registerCall(this, POTHOS_FCN_TUPLE(StandardConvolutionalEncoder, standard));
     }
@@ -74,6 +89,8 @@ static const std::vector<Pothos::BlockRegistry> standardConvEncoders =
     REGISTRY("gsm_tch_ahs7-4",  "GSM TCH-AHS7.4"),
     REGISTRY("gsm_tch_ahs6-7",  "GSM TCH-AHS6.7"),
     REGISTRY("gsm_tch_ahs5-9",  "GSM TCH-AHS5.9"),
+    REGISTRY("gsm_tch_ahs5-15", "GSM TCH-AHS5.15"),
+    REGISTRY("gsm_tch_ahs4-75", "GSM TCH-AHS4.75"),
     REGISTRY("wimax_fch",       "Wimax FCH"),
     REGISTRY("lte_pbch",        "LTE PBCH"),
 };

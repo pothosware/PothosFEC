@@ -16,7 +16,7 @@ struct StandardEncoderTestParams
     int expectedN;
     int expectedK;
     int expectedLength;
-    // TODO: gen
+    std::vector<int> expectedGen;
     int expectedRGen;
     std::vector<int> expectedPuncture;
     std::string expectedTerminationType;
@@ -29,7 +29,7 @@ static const std::vector<StandardEncoderTestParams> allTestParams =
         2,
         5,
         224,
-        // TODO: gen
+        {023, 033},
         0,
         {},
         "Flush"
@@ -40,7 +40,7 @@ static const std::vector<StandardEncoderTestParams> allTestParams =
         2,
         5,
         290,
-        // TODO: gen
+        {023, 033},
         0,
         {},
         "Flush"
@@ -51,7 +51,7 @@ static const std::vector<StandardEncoderTestParams> allTestParams =
         2,
         5,
         334,
-        // TODO: gen
+        {023, 033},
         0,
         {},
         "Flush"
@@ -62,7 +62,7 @@ static const std::vector<StandardEncoderTestParams> allTestParams =
         2,
         5,
         14,
-        // TODO: gen
+        {023, 033},
         0,
         {},
         "Flush"
@@ -73,7 +73,7 @@ static const std::vector<StandardEncoderTestParams> allTestParams =
         2,
         5,
         35,
-        // TODO: gen
+        {023, 033},
         0,
         {},
         "Flush"
@@ -84,7 +84,7 @@ static const std::vector<StandardEncoderTestParams> allTestParams =
         2,
         5,
         185,
-        // TODO: gen
+        {023, 033},
         0,
         {},
         "Flush"
@@ -95,7 +95,7 @@ static const std::vector<StandardEncoderTestParams> allTestParams =
         3,
         7,
         98,
-        // TODO: gen
+        {0133, 0145, 0175},
         0,
         {
               1,   4,   7,  10,  13,  16,  19,  22,  25,  28,  31,  34,
@@ -116,7 +116,7 @@ static const std::vector<StandardEncoderTestParams> allTestParams =
         2,
         5,
         250,
-        // TODO: gen
+        {020, 033},
         023,
         {
             321, 325, 329, 333, 337, 341, 345, 349, 353, 357, 361, 363,
@@ -133,7 +133,7 @@ static const std::vector<StandardEncoderTestParams> allTestParams =
         3,
         5,
         210,
-        // TODO: gen
+        {033, 025, 020},
         037,
         {
               1,   4,   7,  10,  16,  19,  22,  28,  31,  34,  40,  43,
@@ -178,6 +178,9 @@ POTHOS_TEST_BLOCK("/fec/tests", test_standard_conv_encoders)
         POTHOS_TEST_EQUAL(
             testParams.expectedLength,
             block.call<int>("length"));
+        POTHOS_TEST_EQUALV(
+            testParams.expectedGen,
+            block.call<std::vector<int>>("generatorPolynomial"));
         POTHOS_TEST_EQUAL(
             testParams.expectedRGen,
             block.call<int>("recursiveGeneratorPolynomial"));

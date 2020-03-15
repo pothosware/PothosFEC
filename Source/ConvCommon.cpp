@@ -36,6 +36,8 @@ const std::unordered_map<std::string, const lte_conv_code*>& getConvCodeMap()
         {"GSM TCH-AHS7.4", get_gsm_conv_tch_ahs_7_4()},
         {"GSM TCH-AHS6.7", get_gsm_conv_tch_ahs_6_7()},
         {"GSM TCH-AHS5.9", get_gsm_conv_tch_ahs_5_9()},
+        {"GSM TCH-AHS5.15", get_gsm_conv_tch_ahs_5_15()},
+        {"GSM TCH-AHS4.75", get_gsm_conv_tch_ahs_4_75()},
         {"WiMax FCH", get_wimax_conv_fch()},
         //{"", get_gmr1_conv_tch3_speech()},
         {"LTE PBCH", get_lte_conv_pbch()},
@@ -43,6 +45,43 @@ const std::unordered_map<std::string, const lte_conv_code*>& getConvCodeMap()
     };
 
     return ConvCodeMap;
+}
+
+// The generator polynomial is stored in a static array of size 4, but the
+// values may not be of size 4. The simplest workaround for the case where
+// existing values exist is just to store the array lengths.
+const std::unordered_map<std::string, size_t>& getGenArrLengthsMap()
+{
+    static const std::unordered_map<std::string, size_t> GenArrLengthsMap =
+    {
+        {"GSM XCCH", 2},
+        {"GPRS CS2", 2},
+        {"GPRS CS3", 2},
+        {"GSM RACH", 2},
+        {"GSM SCH", 2},
+        {"GSM TCH-FR", 2},
+        {"GSM TCH-HR", 3},
+        {"GSM TCH-AFS12.2", 2},
+        {"GSM TCH-AFS10.2", 3},
+        {"GSM TCH-AFS7.95", 3},
+        {"GSM TCH-AFS7.4", 3},
+        {"GSM TCH-AFS6.7", 4},
+        {"GSM TCH-AFS5.9", 4},
+        //{"", 0},
+        //{"", 0},
+        {"GSM TCH-AHS7.95", 2},
+        {"GSM TCH-AHS7.4", 2},
+        {"GSM TCH-AHS6.7", 2},
+        {"GSM TCH-AHS5.9", 2},
+        {"GSM TCH-AHS5.15", 3},
+        {"GSM TCH-AHS4.75", 3},
+        {"WiMax FCH", 2},
+        //{"", 0},
+        {"LTE PBCH", 3},
+        //{"", 0},
+    };
+
+    return GenArrLengthsMap;
 }
 
 std::string convCodeMapOverlay()

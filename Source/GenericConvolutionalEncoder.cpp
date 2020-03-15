@@ -82,7 +82,7 @@ public:
         }
         else
         {
-            // TurboFEC expects puncture arrays to be null-terminated.
+            // TurboFEC expects puncture arrays to be terminated with -1.
             _puncture.emplace_back(-1);
             _pConvCode->punc = _puncture.data();
         }

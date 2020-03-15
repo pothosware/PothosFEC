@@ -9,7 +9,8 @@
 
 ConvolutionalEncoderBase::ConvolutionalEncoderBase(lte_conv_code* pConvCode):
     Pothos::Block(),
-    _pConvCode(pConvCode)
+    _pConvCode(pConvCode),
+    _genArrLength(4)
 {
     this->setupInput(0, "uint8");
     this->setupOutput(0, "uint8");
@@ -53,11 +54,9 @@ unsigned ConvolutionalEncoderBase::recursiveGeneratorPolynomial() const
 
 std::vector<unsigned> ConvolutionalEncoderBase::generatorPolynomial() const
 {
-    // TODO: the C array is of size 4, but not all entries are of size
-    // 4. Truncate when this is the case.
     return std::vector<unsigned>(
               _pConvCode->gen,
-              _pConvCode->gen+4);
+              (_pConvCode->gen + _genArrLength));
 }
 
 std::vector<int> ConvolutionalEncoderBase::puncture() const

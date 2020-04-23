@@ -48,6 +48,7 @@ POTHOS_MODULE_UTIL(
         ${CMAKE_CURRENT_BINARY_DIR}/TurboFECInfo.cpp
 
         Testing/TestConvolution.cpp
+        Testing/TestLTETurboCoders.cpp
     LIBRARIES
         ${TURBOFEC_LIBRARIES}
     ENABLE_DOCS ON

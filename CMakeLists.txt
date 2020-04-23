@@ -42,6 +42,7 @@ POTHOS_MODULE_UTIL(
         Source/ConvolutionBase.cpp
         Source/Convolution.cpp
         Source/GenericConvolution.cpp
+        Source/LTETurboEncoder.cpp
         Source/Utility.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/TurboFECInfo.cpp
 

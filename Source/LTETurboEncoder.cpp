@@ -124,10 +124,13 @@ class LTETurboEncoder: public Pothos::Block
                 _gen
             };
 
+            const bool mustPostBuffer = (calcOutputSize(inputSize) > this->workInfo().minOutElements);
+
             std::vector<Pothos::BufferChunk> outputBuffers;
             for(size_t port = 0; port < 3; ++port)
             {
-                outputBuffers.emplace_back(Pothos::BufferChunk("uint8", calcOutputSize(inputSize)));
+                if(mustPostBuffer) outputBuffers.emplace_back(Pothos::BufferChunk("uint8", calcOutputSize(inputSize)));
+                else               outputBuffers.emplace_back(outputs[0]->buffer());
             }
 
             int outSizeOrErr = ::lte_turbo_encode(
@@ -145,7 +148,8 @@ class LTETurboEncoder: public Pothos::Block
             input->consume(inputSize);
             for(size_t port = 0; port < 3; ++port)
             {
-                outputs[port]->postBuffer(std::move(outputBuffers[port]));
+                if(mustPostBuffer) outputs[port]->postBuffer(std::move(outputBuffers[port]));
+                else               outputs[port]->produce(outSizeOrErr);
             }
         }
 

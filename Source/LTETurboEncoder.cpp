@@ -88,6 +88,22 @@ class LTETurboEncoder: public Pothos::Block
             _blockStartID = blockStartID;
         }
 
+        void propagateLabels(const Pothos::InputPort* input)
+        {
+            if(!_blockStartID.empty())
+            {
+                // Don't propagate input label.
+                for(const auto& label: input->labels())
+                {
+                    if(label.id != _blockStartID)
+                    {
+                        for(auto* output: this->outputs()) output->postLabel(label);
+                    }
+                }
+            }
+            else Pothos::Block::propagateLabels(input);
+        }
+
         void work() override
         {
             const auto inputSize = this->input(0)->elements();
@@ -151,6 +167,9 @@ class LTETurboEncoder: public Pothos::Block
                 if(mustPostBuffer) outputs[port]->postBuffer(std::move(outputBuffers[port]));
                 else               outputs[port]->produce(outSizeOrErr);
             }
+
+            // Output a start block ID so an decoder can operate on the same data.
+            outputs[0]->postLabel(_blockStartID, outSizeOrErr, 0);
         }
 
         void _blockIDWork(size_t maxInputSize)

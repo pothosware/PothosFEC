@@ -13,6 +13,12 @@ extern "C"
 }
 
 #include <algorithm>
+#include <string>
+
+constexpr size_t calcOutputSize(size_t inputSize)
+{
+    return (inputSize * 3) + (4 * 3);
+}
 
 class LTETurboEncoder: public Pothos::Block
 {
@@ -25,7 +31,8 @@ class LTETurboEncoder: public Pothos::Block
         LTETurboEncoder(unsigned rgen, unsigned gen):
             Pothos::Block(),
             _rgen(rgen),
-            _gen(gen)
+            _gen(gen),
+            _blockStartID()
         {
             this->setupInput(0, "uint8");
 
@@ -37,6 +44,8 @@ class LTETurboEncoder: public Pothos::Block
             this->registerCall(this, POTHOS_FCN_TUPLE(LTETurboEncoder, setRGen));
             this->registerCall(this, POTHOS_FCN_TUPLE(LTETurboEncoder, gen));
             this->registerCall(this, POTHOS_FCN_TUPLE(LTETurboEncoder, setGen));
+            this->registerCall(this, POTHOS_FCN_TUPLE(LTETurboEncoder, blockStartID));
+            this->registerCall(this, POTHOS_FCN_TUPLE(LTETurboEncoder, setBlockStartID));
 
             this->registerProbe("rgen");
             this->registerProbe("gen");
@@ -69,27 +78,40 @@ class LTETurboEncoder: public Pothos::Block
             this->emitSignal("genChanged", _gen);
         }
 
+        std::string blockStartID() const
+        {
+            return _blockStartID;
+        }
+
+        void setBlockStartID(const std::string& blockStartID)
+        {
+            _blockStartID = blockStartID;
+        }
+
         void work() override
         {
-            if(0 == this->workInfo().minElements)
-            {
-                return;
-            }
-
-            auto in = this->input(0);
-            const auto& out = this->outputs();
-
-            // We know the output is (len * 3 + 4 * 3).
-            const std::vector<size_t> maxSizes{
-                                          this->workInfo().minInElements,
-                                          (this->workInfo().minOutElements / 3) - 4,
-                                          TURBO_MAX_K};
-            const auto inputSize = *std::min_element(maxSizes.begin(), maxSizes.end());
+            const auto inputSize = this->input(0)->elements();
             if(inputSize < TURBO_MIN_K)
             {
                 // We don't have enough data to encode yet.
                 return;
             }
+
+            if(_blockStartID.empty()) _work(inputSize);
+            else                      _blockIDWork(inputSize);
+        }
+
+    private:
+        unsigned _rgen;
+        unsigned _gen;
+
+        std::string _blockStartID;
+
+        // Common code when we've determined our input size.
+        void _work(size_t inputSize)
+        {
+            auto input = this->input(0);
+            const auto& outputs = this->outputs();
 
             // Per TurboFEC's documentation, only a rate of 2 and
             // constraint length of 4 are supported.
@@ -102,21 +124,76 @@ class LTETurboEncoder: public Pothos::Block
                 _gen
             };
 
+            std::vector<Pothos::BufferChunk> outputBuffers;
+            for(size_t port = 0; port < 3; ++port)
+            {
+                outputBuffers.emplace_back(Pothos::BufferChunk("uint8", calcOutputSize(inputSize)));
+            }
+
             int outSizeOrErr = ::lte_turbo_encode(
                                    &turboCode,
-                                   in->buffer(),
-                                   out[0]->buffer(),
-                                   out[1]->buffer(),
-                                   out[2]->buffer());
+                                   input->buffer(),
+                                   outputBuffers[0],
+                                   outputBuffers[1],
+                                   outputBuffers[2]);
             throwOnErrCode(outSizeOrErr);
+            if(static_cast<size_t>(outSizeOrErr) != calcOutputSize(inputSize))
+            {
+                throw Pothos::AssertionViolationException("Output did not match expected length");
+            }
 
-            in->consume(inputSize);
-            for(auto* output: out) output->produce(outSizeOrErr);
+            input->consume(inputSize);
+            for(size_t port = 0; port < 3; ++port)
+            {
+                outputs[port]->postBuffer(std::move(outputBuffers[port]));
+            }
         }
 
-    private:
-        unsigned _rgen;
-        unsigned _gen;
+        void _blockIDWork(size_t maxInputSize)
+        {
+            size_t inputSize = maxInputSize;
+
+            auto input = this->input(0);
+
+            bool blockFound = false;
+
+            for(const auto& label: input->labels())
+            {
+                // Skip if we haven't received enough data for this label.
+                if(label.index > maxInputSize) continue;
+
+                // Skip if this isn't a block start label.
+                if(label.id != _blockStartID) continue;
+
+                // If we have a length, use it.
+                if(label.data.canConvert(typeid(size_t)))
+                {
+                    inputSize = label.data.convert<size_t>();
+                }
+
+                // Skip all data before the block starts.
+                if(0 != label.index)
+                {
+                    input->consume(label.index);
+                    input->setReserve(inputSize);
+                    return;
+                }
+
+                // If our block starts at the beginning of our buffer, wait until we have
+                // enough data to encode.
+                if(maxInputSize < inputSize)
+                {
+                    input->setReserve(inputSize);
+                    return;
+                }
+
+                blockFound = true;
+                break;
+            }
+
+            if(blockFound) this->_work(inputSize);
+            else           input->consume(maxInputSize);
+        }
 };
 
 static Pothos::BlockRegistry registerLTETurboEncoder(

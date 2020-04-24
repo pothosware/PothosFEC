@@ -28,6 +28,7 @@ static Pothos::BufferChunk getRandomInput(size_t numElems)
 POTHOS_TEST_BLOCK("/fec/tests", test_lte_encoder_output_length)
 {
     constexpr size_t numElems = TURBO_MAX_K;
+    const std::string blockStartID = "START";
 
     auto feederSource = Pothos::BlockRegistry::make("/blocks/feeder_source", "uint8");
     auto lteEncoder = Pothos::BlockRegistry::make("/fec/lte_turbo_encoder", 013, 015);
@@ -38,6 +39,9 @@ POTHOS_TEST_BLOCK("/fec/tests", test_lte_encoder_output_length)
     }
 
     feederSource.call("feedBuffer", getRandomInput(numElems));
+    feederSource.call("feedLabel", Pothos::Label(blockStartID, numElems, 0));
+
+    lteEncoder.call("setBlockStartID", blockStartID);
 
     {
         Pothos::Topology topology;

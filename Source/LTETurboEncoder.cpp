@@ -169,6 +169,10 @@ class LTETurboEncoder: public Pothos::Block
                 if(label.data.canConvert(typeid(size_t)))
                 {
                     inputSize = label.data.convert<size_t>();
+                    if(inputSize > TURBO_MAX_K)
+                    {
+                        throw Pothos::InvalidArgumentException("Max block size: " + std::to_string(TURBO_MAX_K));
+                    }
                 }
 
                 // Skip all data before the block starts.

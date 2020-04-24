@@ -13,15 +13,20 @@ extern "C"
 }
 
 #include <algorithm>
-#include <cstring>
 #include <memory>
+#include <string>
 
 using DecodeFcn = int(*)(struct tdecoder*, int, int, uint8_t*, const int8_t*, const int8_t*, const int8_t*);
 
 using tDecoderUPtr = std::unique_ptr<tdecoder, decltype(&::free_tdec)>;
 static inline tDecoderUPtr makeDecoderUPtr()
 {
-    return tDecoderUPtr((tdecoder*)calloc(1, sizeof(tdecoder*)), &free_tdec);
+    return tDecoderUPtr(::alloc_tdec(), &free_tdec);
+}
+
+constexpr size_t calcOutputSize(size_t inputSize)
+{
+    return (inputSize / 3) - 4;
 }
 
 class LTETurboDecoder: public Pothos::Block
@@ -49,6 +54,9 @@ class LTETurboDecoder: public Pothos::Block
 
             this->registerCall(this, POTHOS_FCN_TUPLE(LTETurboDecoder, numIterations));
             this->registerCall(this, POTHOS_FCN_TUPLE(LTETurboDecoder, setNumIterations));
+            this->registerCall(this, POTHOS_FCN_TUPLE(LTETurboDecoder, blockStartID));
+            this->registerCall(this, POTHOS_FCN_TUPLE(LTETurboDecoder, setBlockStartID));
+
             this->registerProbe("numIterations");
             this->registerSignal("numIterationsChanged");
         }
@@ -65,28 +73,42 @@ class LTETurboDecoder: public Pothos::Block
             this->emitSignal("numIterationsChanged", _numIterations);
         }
 
+        std::string blockStartID() const
+        {
+            return _blockStartID;
+        }
+
+        void setBlockStartID(const std::string& blockStartID)
+        {
+            _blockStartID = blockStartID;
+        }
+
+        void propagateLabels(const Pothos::InputPort* input) override
+        {
+            if(!_blockStartID.empty())
+            {
+                // Don't propagate input label.
+                for(const auto& label: input->labels())
+                {
+                    if(label.id != _blockStartID)
+                    {
+                        this->output(0)->postLabel(label);
+                    }
+                }
+            }
+            else Pothos::Block::propagateLabels(input);
+        }
+
         void work() override
         {
-            const auto elems = this->workInfo().minElements;
-            if(0 == elems)
+            const auto elems = this->workInfo().minInElements;
+            if((0 == elems) || (calcOutputSize(elems) < TURBO_MIN_K))
             {
                 return;
             }
 
-            const auto& inputs = this->inputs();
-            auto output = this->output(0);
-
-            _decodeFcn(
-                _tDecoderUPtr.get(),
-                static_cast<int>(elems),
-                static_cast<int>(_numIterations),
-                output->buffer(),
-                inputs[0]->buffer(),
-                inputs[1]->buffer(),
-                inputs[2]->buffer());
-
-            for(auto* input: inputs) input->consume(elems);
-            output->produce(elems);
+            if(_blockStartID.empty()) _work(elems);
+            else                      _blockIDWork(elems);
         }
 
     private:
@@ -94,6 +116,87 @@ class LTETurboDecoder: public Pothos::Block
         bool _unpack;
         DecodeFcn _decodeFcn;
         tDecoderUPtr _tDecoderUPtr;
+
+        std::string _blockStartID;
+
+        // Common code when we've determined our input size.
+        void _work(size_t inputSize)
+        {
+            const auto& inputs = this->inputs();
+            auto output = this->output(0);
+
+            const auto outputSize = calcOutputSize(inputSize);
+
+            _decodeFcn(
+                _tDecoderUPtr.get(),
+                static_cast<int>(outputSize),
+                static_cast<int>(_numIterations),
+                output->buffer(),
+                inputs[0]->buffer(),
+                inputs[1]->buffer(),
+                inputs[2]->buffer());
+
+            for(auto* input: inputs) input->consume(inputSize);
+            output->produce(outputSize);
+
+            // Output a start block ID so an decoder can operate on the same data.
+            if(!_blockStartID.empty()) output->postLabel(_blockStartID, outputSize, 0);
+        }
+
+        void _blockIDWork(size_t maxInputSize)
+        {
+            size_t inputSize = maxInputSize;
+
+            const auto& inputs = this->inputs();
+
+            bool blockFound = false;
+
+            // We take in three inputs, but input 0 is expected to have
+            // the block ID label.
+            for(const auto& label: inputs[0]->labels())
+            {
+                // Skip if we haven't received enough data for this label.
+                if(label.index > maxInputSize) continue;
+
+                // Skip if this isn't a block start label.
+                if(label.id != _blockStartID) continue;
+
+                // If we have a length, use it.
+                if(label.data.canConvert(typeid(size_t)))
+                {
+                    inputSize = label.data.convert<size_t>();
+                    if(calcOutputSize(inputSize) > TURBO_MAX_K)
+                    {
+                        throw Pothos::InvalidArgumentException("Input length corresponds to an invalid block size. Max block size: " + std::to_string(TURBO_MAX_K));
+                    }
+                }
+
+                // Skip all data before the block starts.
+                if(0 != label.index)
+                {
+                    for(auto* input: inputs)
+                    {
+                        input->consume(label.index);
+                        input->setReserve(inputSize);
+                    }
+                    return;
+                }
+
+                // If our block starts at the beginning of our buffer, wait until we have
+                // enough data to encode.
+                if(maxInputSize < inputSize)
+                {
+                    for(auto* input: inputs) input->setReserve(inputSize);
+                    return;
+                }
+
+                blockFound = true;
+                break;
+            }
+
+            if(blockFound) this->_work(inputSize);
+            else           for(auto* input: inputs) input->consume(maxInputSize);
+        }
 };
 
 static Pothos::BlockRegistry registerLTETurboDecoder(

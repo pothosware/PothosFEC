@@ -88,7 +88,7 @@ class LTETurboEncoder: public Pothos::Block
             _blockStartID = blockStartID;
         }
 
-        void propagateLabels(const Pothos::InputPort* input)
+        void propagateLabels(const Pothos::InputPort* input) override
         {
             if(!_blockStartID.empty())
             {
@@ -169,7 +169,7 @@ class LTETurboEncoder: public Pothos::Block
             }
 
             // Output a start block ID so an decoder can operate on the same data.
-            outputs[0]->postLabel(_blockStartID, outSizeOrErr, 0);
+            if(!_blockStartID.empty()) outputs[0]->postLabel(_blockStartID, outSizeOrErr, 0);
         }
 
         void _blockIDWork(size_t maxInputSize)

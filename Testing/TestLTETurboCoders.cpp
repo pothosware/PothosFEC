@@ -41,6 +41,7 @@ static void expectLabelsEqual(const Pothos::Label& label0, const Pothos::Label& 
 POTHOS_TEST_BLOCK("/fec/tests", test_lte_encoder_output_length)
 {
     constexpr size_t numElems = TURBO_MAX_K;
+    constexpr size_t numOutputElems = numElems * 3 + 4 * 3;
     constexpr size_t numJunkElems = 512;
     const std::string blockStartID = "START";
 
@@ -74,12 +75,72 @@ POTHOS_TEST_BLOCK("/fec/tests", test_lte_encoder_output_length)
     }
 
     // This will make sure that only the intended data is encoded.
-    constexpr size_t numOutputElems = numElems * 3 + 4 * 3;
     POTHOS_TEST_EQUAL(numOutputElems, collectorSinks[0].call("getBuffer").get<size_t>("length"));
     POTHOS_TEST_EQUAL(numOutputElems, collectorSinks[1].call("getBuffer").get<size_t>("length"));
     POTHOS_TEST_EQUAL(numOutputElems, collectorSinks[2].call("getBuffer").get<size_t>("length"));
 
     const auto expectedLabel = Pothos::Label(blockStartID, numOutputElems, 0);
     const auto actualLabels = collectorSinks[0].call<std::vector<Pothos::Label>>("getLabels");
+    POTHOS_TEST_EQUAL(1, actualLabels.size());
     expectLabelsEqual(expectedLabel, actualLabels[0]);
+}
+
+POTHOS_TEST_BLOCK("/fec/tests", test_lte_decoder_output_length)
+{
+    constexpr size_t numOutputElems = TURBO_MAX_K;
+    constexpr size_t numElems = numOutputElems * 3 + 4 * 3;
+    constexpr size_t numJunkElems = 512;
+    constexpr size_t numIterations = 4;
+    const std::string blockStartID = "START";
+
+    auto lteDecoder = Pothos::BlockRegistry::make("/fec/lte_turbo_decoder", numIterations, false);
+    auto lteDecoderUnpack = Pothos::BlockRegistry::make("/fec/lte_turbo_decoder", numIterations, true);
+
+    std::vector<Pothos::Proxy> feederSources;
+    for(size_t port = 0; port < 3; ++port)
+    {
+        feederSources.emplace_back(Pothos::BlockRegistry::make("/blocks/feeder_source", "uint8"));
+        auto randomInputPlusJunk = getRandomInput(numJunkElems);
+        randomInputPlusJunk.append(getRandomInput(numElems));
+        randomInputPlusJunk.append(getRandomInput(numJunkElems));
+
+        feederSources.back().call("feedBuffer", randomInputPlusJunk);
+        feederSources.back().call("feedLabel", Pothos::Label(blockStartID, numElems, numJunkElems));
+    }
+
+    auto collectorSink = Pothos::BlockRegistry::make("/blocks/collector_sink", "uint8");
+    auto collectorSinkUnpack = Pothos::BlockRegistry::make("/blocks/collector_sink", "uint8");
+
+    lteDecoder.call("setBlockStartID", blockStartID);
+    lteDecoderUnpack.call("setBlockStartID", blockStartID);
+
+    {
+        Pothos::Topology topology;
+
+        for(size_t port = 0; port < 3; ++port)
+        {
+            topology.connect(feederSources[port], 0, lteDecoder, port);
+            topology.connect(feederSources[port], 0, lteDecoderUnpack, port);
+        }
+
+        topology.connect(lteDecoder, 0, collectorSink, 0);
+        topology.connect(lteDecoderUnpack, 0, collectorSinkUnpack, 0);
+
+        topology.commit();
+        POTHOS_TEST_TRUE(topology.waitInactive(0.05));
+    }
+
+    // This will make sure that only the intended data is decoded.
+    POTHOS_TEST_EQUAL(numOutputElems, collectorSink.call("getBuffer").get<size_t>("length"));
+    POTHOS_TEST_EQUAL(numOutputElems, collectorSinkUnpack.call("getBuffer").get<size_t>("length"));
+
+    const auto expectedLabel = Pothos::Label(blockStartID, numOutputElems, 0);
+
+    const auto actualLabels = collectorSink.call<std::vector<Pothos::Label>>("getLabels");
+    POTHOS_TEST_EQUAL(1, actualLabels.size());
+    expectLabelsEqual(expectedLabel, actualLabels[0]);
+
+    const auto actualUnpackLabels = collectorSinkUnpack.call<std::vector<Pothos::Label>>("getLabels");
+    POTHOS_TEST_EQUAL(1, actualUnpackLabels.size());
+    expectLabelsEqual(expectedLabel, actualUnpackLabels[0]);
 }

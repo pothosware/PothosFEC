@@ -28,6 +28,7 @@ static Pothos::BufferChunk getRandomInput(size_t numElems)
 POTHOS_TEST_BLOCK("/fec/tests", test_lte_encoder_output_length)
 {
     constexpr size_t numElems = TURBO_MAX_K;
+    constexpr size_t numJunkElems = 512;
     const std::string blockStartID = "START";
 
     auto feederSource = Pothos::BlockRegistry::make("/blocks/feeder_source", "uint8");
@@ -38,8 +39,12 @@ POTHOS_TEST_BLOCK("/fec/tests", test_lte_encoder_output_length)
         collectorSinks.emplace_back(Pothos::BlockRegistry::make("/blocks/collector_sink", "uint8"));
     }
 
-    feederSource.call("feedBuffer", getRandomInput(numElems));
-    feederSource.call("feedLabel", Pothos::Label(blockStartID, numElems, 0));
+    auto randomInputPlusJunk = getRandomInput(numJunkElems);
+    randomInputPlusJunk.append(getRandomInput(numElems));
+    randomInputPlusJunk.append(getRandomInput(numJunkElems));
+
+    feederSource.call("feedBuffer", randomInputPlusJunk);
+    feederSource.call("feedLabel", Pothos::Label(blockStartID, numElems, numJunkElems));
 
     lteEncoder.call("setBlockStartID", blockStartID);
 
@@ -55,6 +60,7 @@ POTHOS_TEST_BLOCK("/fec/tests", test_lte_encoder_output_length)
         POTHOS_TEST_TRUE(topology.waitInactive(0.05));
     }
 
+    // This will make sure that only the intended data is encoded.
     constexpr size_t expectedLength = numElems * 3 + 4 * 3;
     POTHOS_TEST_EQUAL(expectedLength, collectorSinks[0].call("getBuffer").get<size_t>("length"));
     POTHOS_TEST_EQUAL(expectedLength, collectorSinks[1].call("getBuffer").get<size_t>("length"));

@@ -10,6 +10,9 @@
 #include <math.h>
 #include <stdlib.h>
 
+namespace FECTests
+{
+
 /*
  * Copied directly from TurboFEC's unit tests.
  */
@@ -120,4 +123,6 @@ Pothos::BufferChunk addNoiseAndGetError(
     *errorOut = uint8_to_err(noisyBufferChunk, bufferChunk, bufferChunk.length);
 
     return noisyBufferChunk;
+}
+
 }

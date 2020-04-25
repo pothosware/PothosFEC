@@ -8,6 +8,8 @@
 
 #include <turbofec/turbo.h>
 
+using namespace FECTests;
+
 constexpr size_t numElems = TURBO_MAX_K;
 
 POTHOS_TEST_BLOCK("/fec/tests", test_bit_error_rate_no_noise)

@@ -12,6 +12,8 @@
 #include <string>
 #include <vector>
 
+using namespace FECTests;
+
 POTHOS_TEST_BLOCK("/fec/tests", test_lte_encoder_output_length)
 {
     constexpr size_t numElems = TURBO_MAX_K;

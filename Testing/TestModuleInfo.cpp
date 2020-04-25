@@ -10,6 +10,8 @@
 
 #include <string>
 
+using namespace FECTests;
+
 POTHOS_TEST_BLOCK("/fec/tests", test_module_info)
 {
     const auto moduleInfo = getAndCallPlugin<std::string>("/devices/fec/info");

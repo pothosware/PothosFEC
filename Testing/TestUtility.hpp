@@ -6,6 +6,9 @@
 #include <Pothos/Framework.hpp>
 #include <Pothos/Plugin.hpp>
 
+namespace FECTests
+{
+
 static constexpr float defaultSNR = 8.0f;
 static constexpr float defaultAmp = 32.0f;
 
@@ -34,4 +37,6 @@ ReturnType getAndCallPlugin(
     auto getter = plugin.getObject().extract<Pothos::Callable>();
 
     return getter.call<ReturnType>(args...);
+}
+
 }

@@ -1,6 +1,8 @@
 // Copyright (c) 2020 Nicholas Corgan
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "TestUtility.hpp"
+
 #include <Pothos/Framework.hpp>
 #include <Pothos/Proxy.hpp>
 #include <Pothos/Testing.hpp>
@@ -12,7 +14,27 @@
 #include <string>
 #include <vector>
 
-struct StandardTestParams
+//
+// Utility functions
+//
+
+static std::string convertStandardName(const std::string& standardName)
+{
+    static const std::vector<std::string> charsToReplace{" ","-","."};
+    auto convertedStandardName = Poco::toLower(standardName);
+    for(const auto& charToReplace: charsToReplace)
+    {
+        Poco::replaceInPlace(convertedStandardName, charToReplace, std::string("_"));
+    }
+
+    return convertedStandardName;
+}
+
+//
+// Test standard values
+//
+
+struct StandardValueTestParams
 {
     std::string standard;
     int expectedN;
@@ -23,7 +45,7 @@ struct StandardTestParams
     std::vector<int> expectedPuncture;
     std::string expectedTerminationType;
 };
-static const std::vector<StandardTestParams> allTestParams =
+static const std::vector<StandardValueTestParams> allTestParams =
 {
     {
         "GSM XCCH",
@@ -153,7 +175,7 @@ static const std::vector<StandardTestParams> allTestParams =
 
 static void testBlockGetters(
     const Pothos::Proxy& block,
-    const StandardTestParams& testParams)
+    const StandardValueTestParams& testParams)
 {
     POTHOS_TEST_EQUAL(
         testParams.standard,
@@ -181,19 +203,7 @@ static void testBlockGetters(
         block.call<std::string>("terminationType"));
 }
 
-static std::string convertStandardName(const std::string& standardName)
-{
-    static const std::vector<std::string> charsToReplace{" ","-","."};
-    auto convertedStandardName = Poco::toLower(standardName);
-    for(const auto& charToReplace: charsToReplace)
-    {
-        Poco::replaceInPlace(convertedStandardName, charToReplace, std::string("_"));
-    }
-
-    return convertedStandardName;
-}
-
-POTHOS_TEST_BLOCK("/fec/tests", test_standard_conv_encoders)
+POTHOS_TEST_BLOCK("/fec/tests", test_standard_conv_encoder_fields)
 {
     for(const auto& testParams: allTestParams)
     {
@@ -205,7 +215,7 @@ POTHOS_TEST_BLOCK("/fec/tests", test_standard_conv_encoders)
     }
 }
 
-POTHOS_TEST_BLOCK("/fec/tests", test_standard_conv_decoders)
+POTHOS_TEST_BLOCK("/fec/tests", test_standard_conv_decoder_fields)
 {
     for(const auto& testParams: allTestParams)
     {
@@ -214,5 +224,76 @@ POTHOS_TEST_BLOCK("/fec/tests", test_standard_conv_decoders)
 
         auto block = Pothos::BlockRegistry::make(blockRegistryPath);
         testBlockGetters(block, testParams);
+    }
+}
+
+//
+// Test symmetry between encoders and decoders
+//
+
+static const std::vector<std::string> StandardNames =
+{
+    "GSM XCCH",
+    "GPRS CS2",
+    "GPRS CS3",
+    "GSM RACH",
+    "GSM SCH",
+    "GSM TCH-FR",
+    "GSM TCH-HR",
+    "GSM TCH-AFS12.2",
+    "GSM TCH-AFS10.2",
+    "GSM TCH-AFS7.95",
+    "GSM TCH-AFS7.4",
+    "GSM TCH-AFS6.7",
+    "GSM TCH-AFS5.9",
+    "GSM TCH-AHS7.95",
+    "GSM TCH-AHS7.4",
+    "GSM TCH-AHS6.7",
+    "GSM TCH-AHS5.9",
+    "GSM TCH-AHS5.15",
+    "GSM TCH-AHS4.75",
+    "WiMax FCH",
+    "LTE PBCH"
+};
+
+static void testStandardCoderSymmetry(const std::string& standardName)
+{
+    std::cout << " * Testing " << standardName << "..." << std::endl;
+
+    const auto encoderBlockPath = Poco::format("/fec/%s_encoder", convertStandardName(standardName));
+    const auto decoderBlockPath = Poco::format("/fec/%s_encoder", convertStandardName(standardName));
+
+    auto encoder = Pothos::BlockRegistry::make(encoderBlockPath);
+    auto decoder = Pothos::BlockRegistry::make(decoderBlockPath);
+    POTHOS_TEST_EQUAL(standardName, encoder.call<std::string>("standard"));
+    POTHOS_TEST_EQUAL(standardName, decoder.call<std::string>("standard"));
+
+    const auto length = encoder.call<size_t>("length");
+    const auto numInputs = length * 32;
+
+    auto randomInput = FECTests::getRandomInput(numInputs);
+
+    auto feederSource = Pothos::BlockRegistry::make("/blocks/feeder_source", "uint8");
+    feederSource.call("feedBuffer", randomInput);
+
+    auto collectorSink = Pothos::BlockRegistry::make("/blocks/collector_sink", "uint8");
+
+    {
+        Pothos::Topology topology;
+
+        topology.connect(feederSource, 0, encoder, 0);
+        topology.connect(encoder, 0, decoder, 0);
+        topology.connect(decoder, 0, collectorSink, 0);
+
+        topology.commit();
+        POTHOS_TEST_TRUE(topology.waitInactive(0.05));
+    }
+}
+
+POTHOS_TEST_BLOCK("/fec/tests", test_standard_conv_coder_symmetry)
+{
+    for(const auto& standardName: StandardNames)
+    {
+        testStandardCoderSymmetry(standardName);
     }
 }

@@ -41,6 +41,12 @@ protected:
     size_t _genArrLength;
     bool _isEncoder;
 
+    int _expectedOutputSize;
+    std::vector<std::uint8_t> _expectedOutputCalcInputVec;
+    std::vector<std::uint8_t> _expectedOutputCalcOutputVec;
+
+    void _getExpectedOutputSize();
+
     void encoderWork();
 
     void decoderWork();

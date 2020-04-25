@@ -40,11 +40,12 @@ public:
         this->registerSignal("punctureChanged");
         this->registerSignal("terminationTypeChanged");
 
+        // Note: defaults come from GSM XCCH.
         this->setN(2);
         this->setK(5);
         this->setLength(224);
         this->setRGen(0);
-        this->setGen({});
+        this->setGen({023, 033});
         this->setPuncture({});
         this->setTerminationType("Flush");
     }
@@ -174,11 +175,117 @@ private:
     std::vector<int> _puncture; // For _convCode's pointer to point to
 };
 
+/*
+ * |PothosDoc Generic Convolution Encoder
+ *
+ * |category /FEC/Encoders
+ * |keywords N K gen recursive termination gsm lte
+ * |factory /fec/generic_conv_encoder()
+ * |setter setN(N)
+ * |setter setK(K)
+ * |setter setLength(length)
+ * |setter setRGen(rgen)
+ * |setter setGen(gen)
+ * |setter setPuncture(puncture)
+ * |setter setTerminationType(terminationType)
+ *
+ * |param N[Rate] 2, 3, 4 (corresponding to 1/2, 1/3, 1/4)
+ * |widget SpinBox(minimum=2,maximum=4)
+ * |default 2
+ * |preview enable
+ *
+ * |param K[Constraint Length] 5 or 7
+ * |widget ComboBox(editable=False)
+ * |option 5
+ * |option 7
+ * |default 5
+ * |preview enable
+ *
+ * |param length[Length] Length of blocks to convolve
+ * |widget SpinBox(minimum=1)
+ * |default 224
+ * |preview enable
+ *
+ * |param rgen[RGen] Recursive generator polynomial
+ * |widget SpinBox(minimum=0,base=8)
+ * |default 0
+ * |preview enable
+ *
+ * |param gen[Gen] Generator polynomial (length 0-4)
+ * |widget LineEdit()
+ * |default [023,033]
+ * |preview enable
+ *
+ * |param puncture[Puncture] Note: all values must be positive.
+ * |widget LineEdit()
+ * |default []
+ * |preview enable
+ *
+ * |param terminationType[TerminationType]
+ * |widget ComboBox(editable=False)
+ * |option [Flush] "Flush"
+ * |option [Tail-biting] "Tail-biting"
+ * |default "Flush"
+ * |preview enable
+ */
 static Pothos::BlockRegistry registerGenericConvolutionEncoder(
     "/fec/generic_conv_encoder",
     Pothos::Callable(&GenericConvolution::make)
         .bind(true, 0));
 
+/*
+ * |PothosDoc Generic Convolution Decoder
+ *
+ * |category /FEC/Decoders
+ * |keywords N K gen recursive termination gsm lte
+ * |factory /fec/generic_conv_decoder()
+ * |setter setN(N)
+ * |setter setK(K)
+ * |setter setLength(length)
+ * |setter setRGen(rgen)
+ * |setter setGen(gen)
+ * |setter setPuncture(puncture)
+ * |setter setTerminationType(terminationType)
+ *
+ * |param N[Rate] 2, 3, 4 (corresponding to 1/2, 1/3, 1/4)
+ * |widget SpinBox(minimum=2,maximum=4)
+ * |default 2
+ * |preview enable
+ *
+ * |param K[Constraint Length] 5 or 7
+ * |widget ComboBox(editable=False)
+ * |option 5
+ * |option 7
+ * |default 5
+ * |preview enable
+ *
+ * |param length[Length] Length of blocks to convolve
+ * |widget SpinBox(minimum=1)
+ * |default 224
+ * |preview enable
+ *
+ * |param rgen[RGen] Recursive generator polynomial
+ * |widget SpinBox(minimum=0,base=8)
+ * |default 0
+ * |preview enable
+ *
+ * |param gen[Gen] Generator polynomial (length 0-4)
+ * |widget LineEdit()
+ * |default [023,033]
+ * |preview enable
+ *
+ * |param puncture[Puncture] Note: all values must be positive.
+ * |widget LineEdit()
+ * |default []
+ * |preview enable
+ *
+ * |param terminationType[TerminationType]
+ * |widget ComboBox(editable=False)
+ * |option [Flush] "Flush"
+ * |option [Tail-biting] "Tail-biting"
+ * |default "Flush"
+ * |preview enable
+ */
 static Pothos::BlockRegistry registerGenericConvolutionDecoder(
     "/fec/generic_conv_decoder",
     Pothos::Callable(&GenericConvolution::make)

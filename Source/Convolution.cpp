@@ -119,33 +119,7 @@ public:
                       "Could not find GenArrLengthsMap entry for "+_standard);
         }
 
-        this->registerCall(this, POTHOS_FCN_TUPLE(Convolution, overlay));
         this->registerCall(this, POTHOS_FCN_TUPLE(Convolution, standard));
-    }
-
-    std::string overlay() const
-    {
-        nlohmann::json json;
-        auto& params = json["params"];
-
-        nlohmann::json standardParam;
-        standardParam["key"] = "standard";
-        standardParam["widgetType"] = "ComboBox";
-        standardParam["widgetKwargs"]["editable"] = false;
-
-        auto& standardParamOpts = standardParam["options"];
-        for(const auto& mapPair: ConvCodeMap)
-        {
-            const auto& standardName = mapPair.first;
-
-            nlohmann::json option;
-            option["name"] = standardName;
-            option["value"] = "\""+standardName+"\"";
-            standardParamOpts.push_back(option);
-        }
-
-        params.push_back(standardParam);
-        return json.dump();
     }
 
     std::string standard() const

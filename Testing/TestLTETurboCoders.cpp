@@ -1,6 +1,8 @@
 // Copyright (c) 2020 Nicholas Corgan
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+#include "TestUtility.hpp"
+
 #include <Pothos/Framework.hpp>
 #include <Pothos/Proxy.hpp>
 #include <Pothos/Testing.hpp>
@@ -12,35 +14,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
-static Pothos::BufferChunk getRandomInput(size_t numElems)
-{
-    Pothos::BufferChunk bufferChunk("uint8", numElems);
-
-    Poco::RandomBuf randomBuf;
-    randomBuf.readFromDevice(
-        bufferChunk,
-        numElems);
-    for(size_t elem = 0; elem < numElems; ++elem)
-    {
-        bufferChunk.as<std::uint8_t*>()[elem] &= 1;
-    }
-
-    return bufferChunk;
-}
-
-// Note: Pothos::Object::operator== checks that the objects' data is the same,
-// not just the value.
-static void testLabelsEqual(const Pothos::Label& label0, const Pothos::Label& label1)
-{
-    POTHOS_TEST_EQUAL(label0.id, label1.id);
-
-    POTHOS_TEST_EQUAL(bool(label0.data), bool(label1.data));
-    if(label0.data) POTHOS_TEST_EQUAL(0, label0.data.compareTo(label1.data));
-
-    POTHOS_TEST_EQUAL(label0.index, label1.index);
-    POTHOS_TEST_EQUAL(label0.width, label1.width);
-}
 
 POTHOS_TEST_BLOCK("/fec/tests", test_lte_encoder_output_length)
 {

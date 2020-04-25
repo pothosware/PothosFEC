@@ -1,7 +1,14 @@
-#include <math.h>
-#include <stdlib.h>
+// Copyright (c) 2020 Nicholas Corgan
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "TestUtility.hpp"
+
+#include <Pothos/Testing.hpp>
+
+#include <Poco/RandomStream.h>
+
+#include <math.h>
+#include <stdlib.h>
 
 /*
  * Copied directly from TurboFEC's unit tests.
@@ -72,6 +79,35 @@ static int uint8_to_err(int8_t *dst, uint8_t *src, int n)
 /*
  * Test-facing functions
  */
+
+Pothos::BufferChunk getRandomInput(size_t numElems)
+{
+    Pothos::BufferChunk bufferChunk("uint8", numElems);
+
+    Poco::RandomBuf randomBuf;
+    randomBuf.readFromDevice(
+        bufferChunk,
+        numElems);
+    for(size_t elem = 0; elem < numElems; ++elem)
+    {
+        bufferChunk.as<std::uint8_t*>()[elem] &= 1;
+    }
+
+    return bufferChunk;
+}
+
+// Note: Pothos::Object::operator== checks that the objects' data is the same,
+// not just the value.
+void testLabelsEqual(const Pothos::Label& label0, const Pothos::Label& label1)
+{
+    POTHOS_TEST_EQUAL(label0.id, label1.id);
+
+    POTHOS_TEST_EQUAL(bool(label0.data), bool(label1.data));
+    if(label0.data) POTHOS_TEST_EQUAL(0, label0.data.compareTo(label1.data));
+
+    POTHOS_TEST_EQUAL(label0.index, label1.index);
+    POTHOS_TEST_EQUAL(label0.width, label1.width);
+}
 
 Pothos::BufferChunk addNoiseAndGetError(
     const Pothos::BufferChunk& bufferChunk,

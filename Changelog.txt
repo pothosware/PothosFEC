@@ -1,0 +1,10 @@
+This this the changelog file for the Pothos FEC toolkit.
+
+Release 0.0.1 (2020-04-25)
+==========================
+
+- First code release, not yet a release candidate
+- Added LTE turbo encoding and decoding
+- Added convolution blocks for various cellular standards
+- Added generic convolution blocks
+- Added BER block

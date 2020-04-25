@@ -137,7 +137,7 @@ class LTETurboDecoder: public Pothos::Block
                 inputs[2]->buffer());
 
             for(auto* input: inputs) input->consume(inputSize);
-            output->produce(outputSize);
+            output->produce(_unpack ? outputSize : (outputSize / 8));
 
             // Output a start block ID so an decoder can operate on the same data.
             if(!_blockStartID.empty()) output->postLabel(_blockStartID, outputSize, 0);

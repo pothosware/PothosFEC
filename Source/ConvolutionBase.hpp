@@ -26,9 +26,9 @@ public:
 
     int length() const;
 
-    unsigned recursiveGeneratorPolynomial() const;
+    unsigned rgen() const;
 
-    std::vector<unsigned> generatorPolynomial() const;
+    std::vector<unsigned> gen() const;
 
     std::vector<int> puncture() const;
 

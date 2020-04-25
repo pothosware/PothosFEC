@@ -18,16 +18,16 @@ ConvolutionBase::ConvolutionBase(lte_conv_code* pConvCode, bool isEncoder):
     this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionBase, N));
     this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionBase, K));
     this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionBase, length));
-    this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionBase, recursiveGeneratorPolynomial));
-    this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionBase, generatorPolynomial));
+    this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionBase, rgen));
+    this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionBase, gen));
     this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionBase, puncture));
     this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionBase, terminationType));
 
     this->registerProbe("N");
     this->registerProbe("K");
     this->registerProbe("length");
-    this->registerProbe("recursiveGeneratorPolynomial");
-    this->registerProbe("generatorPolynomial");
+    this->registerProbe("rgen");
+    this->registerProbe("gen");
     this->registerProbe("puncture");
     this->registerProbe("terminationType");
 }
@@ -49,12 +49,12 @@ int ConvolutionBase::length() const
     return _pConvCode->len;
 }
 
-unsigned ConvolutionBase::recursiveGeneratorPolynomial() const
+unsigned ConvolutionBase::rgen() const
 {
     return _pConvCode->rgen;
 }
 
-std::vector<unsigned> ConvolutionBase::generatorPolynomial() const
+std::vector<unsigned> ConvolutionBase::gen() const
 {
     return std::vector<unsigned>(
               _pConvCode->gen,

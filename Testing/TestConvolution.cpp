@@ -5,6 +5,9 @@
 #include <Pothos/Proxy.hpp>
 #include <Pothos/Testing.hpp>
 
+#include <Poco/Format.h>
+#include <Poco/String.h>
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -166,10 +169,10 @@ static void testBlockGetters(
         block.call<int>("length"));
     POTHOS_TEST_EQUALV(
         testParams.expectedGen,
-        block.call<std::vector<int>>("generatorPolynomial"));
+        block.call<std::vector<int>>("gen"));
     POTHOS_TEST_EQUAL(
         testParams.expectedRGen,
-        block.call<int>("recursiveGeneratorPolynomial"));
+        block.call<int>("rgen"));
     POTHOS_TEST_EQUALV(
         testParams.expectedPuncture,
         block.call<std::vector<int>>("puncture"));
@@ -178,32 +181,38 @@ static void testBlockGetters(
         block.call<std::string>("terminationType"));
 }
 
+static std::string convertStandardName(const std::string& standardName)
+{
+    static const std::vector<std::string> charsToReplace{" ","-","."};
+    auto convertedStandardName = Poco::toLower(standardName);
+    for(const auto& charToReplace: charsToReplace)
+    {
+        Poco::replaceInPlace(convertedStandardName, charToReplace, std::string("_"));
+    }
+
+    return convertedStandardName;
+}
+
 POTHOS_TEST_BLOCK("/fec/tests", test_standard_conv_encoders)
 {
-    const std::string blockRegistryPath = "/fec/conv_encoder";
-
     for(const auto& testParams: allTestParams)
     {
         std::cout << " * Testing " << testParams.standard << "..." << std::endl;
+        const auto blockRegistryPath = Poco::format("/fec/%s_encoder", convertStandardName(testParams.standard));
 
-        auto block = Pothos::BlockRegistry::make(
-                         blockRegistryPath,
-                         testParams.standard);
+        auto block = Pothos::BlockRegistry::make(blockRegistryPath);
         testBlockGetters(block, testParams);
     }
 }
 
 POTHOS_TEST_BLOCK("/fec/tests", test_standard_conv_decoders)
 {
-    const std::string blockRegistryPath = "/fec/conv_decoder";
-
     for(const auto& testParams: allTestParams)
     {
         std::cout << " * Testing " << testParams.standard << "..." << std::endl;
+        const auto blockRegistryPath = Poco::format("/fec/%s_decoder", convertStandardName(testParams.standard));
 
-        auto block = Pothos::BlockRegistry::make(
-                         blockRegistryPath,
-                         testParams.standard);
+        auto block = Pothos::BlockRegistry::make(blockRegistryPath);
         testBlockGetters(block, testParams);
     }
 }

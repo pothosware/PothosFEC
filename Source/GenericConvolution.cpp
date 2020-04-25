@@ -27,24 +27,24 @@ public:
         this->registerCall(this, POTHOS_FCN_TUPLE(GenericConvolution, setN));
         this->registerCall(this, POTHOS_FCN_TUPLE(GenericConvolution, setK));
         this->registerCall(this, POTHOS_FCN_TUPLE(GenericConvolution, setLength));
-        this->registerCall(this, POTHOS_FCN_TUPLE(GenericConvolution, setRecursiveGeneratorPolynomial));
-        this->registerCall(this, POTHOS_FCN_TUPLE(GenericConvolution, setGeneratorPolynomial));
+        this->registerCall(this, POTHOS_FCN_TUPLE(GenericConvolution, setRGen));
+        this->registerCall(this, POTHOS_FCN_TUPLE(GenericConvolution, setGen));
         this->registerCall(this, POTHOS_FCN_TUPLE(GenericConvolution, setPuncture));
         this->registerCall(this, POTHOS_FCN_TUPLE(GenericConvolution, setTerminationType));
 
         this->registerSignal("NChanged");
         this->registerSignal("KChanged");
         this->registerSignal("lengthChanged");
-        this->registerSignal("recursiveGeneratorPolynomialChanged");
-        this->registerSignal("generatorPolynomialChanged");
+        this->registerSignal("rgenChanged");
+        this->registerSignal("genChanged");
         this->registerSignal("punctureChanged");
         this->registerSignal("terminationTypeChanged");
 
         this->setN(2);
         this->setK(5);
         this->setLength(224);
-        this->setRecursiveGeneratorPolynomial(0);
-        this->setGeneratorPolynomial({});
+        this->setRGen(0);
+        this->setGen({});
         this->setPuncture({});
         this->setTerminationType("Flush");
     }
@@ -87,7 +87,7 @@ public:
         this->emitSignal("lengthChanged", length);
     }
 
-    void setRecursiveGeneratorPolynomial(int rgen)
+    void setRGen(int rgen)
     {
         if(rgen < 0)
         {
@@ -96,10 +96,10 @@ public:
 
         _pConvCode->rgen = rgen;
 
-        this->emitSignal("recursiveGeneratorPolynomialChanged", rgen);
+        this->emitSignal("rgenChanged", rgen);
     }
 
-    void setGeneratorPolynomial(const std::vector<unsigned>& gen)
+    void setGen(const std::vector<unsigned>& gen)
     {
         if(gen.size() > 4)
         {
@@ -116,7 +116,7 @@ public:
                 (gen.size() * sizeof(unsigned)));
         }
 
-        this->emitSignal("generatorPolynomialChanged", gen);
+        this->emitSignal("genChanged", gen);
     }
 
     void setPuncture(const std::vector<int>& puncture)

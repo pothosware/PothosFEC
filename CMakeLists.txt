@@ -49,6 +49,7 @@ POTHOS_MODULE_UTIL(
 
         Testing/TestConvolution.cpp
         Testing/TestLTETurboCoders.cpp
+        Testing/TestUtility.cpp
     LIBRARIES
         ${TURBOFEC_LIBRARIES}
     ENABLE_DOCS ON

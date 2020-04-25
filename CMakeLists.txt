@@ -31,8 +31,8 @@ include_directories(
     ${TURBOFEC_INCLUDE_DIRS})
 
 configure_file(
-    Source/TurboFECInfo.cpp.in
-    ${CMAKE_CURRENT_BINARY_DIR}/TurboFECInfo.cpp)
+    Source/ModuleInfo.cpp.in
+    ${CMAKE_CURRENT_BINARY_DIR}/ModuleInfo.cpp)
 
 include(PothosUtil)
 POTHOS_MODULE_UTIL(
@@ -46,11 +46,12 @@ POTHOS_MODULE_UTIL(
         Source/LTETurboDecoder.cpp
         Source/LTETurboEncoder.cpp
         Source/Utility.cpp
-        ${CMAKE_CURRENT_BINARY_DIR}/TurboFECInfo.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/ModuleInfo.cpp
 
         Testing/TestBitErrorRate.cpp
         Testing/TestConvolution.cpp
         Testing/TestLTETurboCoders.cpp
+        Testing/TestModuleInfo.cpp
         Testing/TestUtility.cpp
     LIBRARIES
         ${TURBOFEC_LIBRARIES}

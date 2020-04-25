@@ -4,6 +4,7 @@
 #pragma once
 
 #include <Pothos/Framework.hpp>
+#include <Pothos/Plugin.hpp>
 
 static constexpr float defaultSNR = 8.0f;
 static constexpr float defaultAmp = 32.0f;
@@ -23,3 +24,14 @@ Pothos::BufferChunk addNoiseAndGetError(
     float snr,
     float amp,
     int* errorOut);
+
+template <typename ReturnType, typename... ArgsType>
+ReturnType getAndCallPlugin(
+    const std::string& proxyPath,
+    ArgsType&&... args)
+{
+    auto plugin = Pothos::PluginRegistry::get(proxyPath);
+    auto getter = plugin.getObject().extract<Pothos::Callable>();
+
+    return getter.call<ReturnType>(args...);
+}

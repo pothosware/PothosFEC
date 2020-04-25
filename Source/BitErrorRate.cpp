@@ -89,7 +89,10 @@ class BitErrorRate: public Pothos::Block
 
             for(size_t elem = 0; elem < elems; ++elem)
             {
-                if(inBuff0[elem] != inBuff1[elem]) ++_mismatchedBits;
+                if((0 == inBuff0[elem]) != (0 == inBuff1[elem]))
+                {
+                    ++_mismatchedBits;
+                }
                 ++_bitsChecked;
             }
 
@@ -99,5 +102,5 @@ class BitErrorRate: public Pothos::Block
 };
 
 static Pothos::BlockRegistry registerBER(
-    "/fec/ber",
+    "/fec/bit_error_rate",
     Pothos::Callable(&BitErrorRate::make));

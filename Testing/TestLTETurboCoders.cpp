@@ -9,9 +9,6 @@
 
 #include <turbofec/turbo.h>
 
-#include <Poco/RandomStream.h>
-
-#include <iostream>
 #include <string>
 #include <vector>
 

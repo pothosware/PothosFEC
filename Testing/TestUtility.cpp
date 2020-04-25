@@ -90,7 +90,7 @@ Pothos::BufferChunk getRandomInput(size_t numElems)
         numElems);
     for(size_t elem = 0; elem < numElems; ++elem)
     {
-        bufferChunk.as<std::uint8_t*>()[elem] &= 1;
+        bufferChunk.as<std::uint8_t*>()[elem] %= 2;
     }
 
     return bufferChunk;

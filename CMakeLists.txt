@@ -48,6 +48,7 @@ POTHOS_MODULE_UTIL(
         Source/Utility.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/TurboFECInfo.cpp
 
+        Testing/TestBitErrorRate.cpp
         Testing/TestConvolution.cpp
         Testing/TestLTETurboCoders.cpp
         Testing/TestUtility.cpp

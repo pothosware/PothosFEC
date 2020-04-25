@@ -111,34 +111,32 @@ void ConvolutionBase::work()
     else           this->decoderWork();
 }
 
+// The logic to determine the expected output size is somewhat
+// convoluted (no pun intended), so we'll run the underlying
+// function on dummy data and note the output length. This isn't
+// ideal, but the function *should* be fast enough so this isn't
+// noticeable, since it only happens on construction and when
+// a field is changed.
 void ConvolutionBase::_getExpectedOutputSize()
 {
-    // The logic to determine the expected output size is somewhat
-    // convoluted, so we'll run the underlying function on dummy data
-    // and note the output length. This isn't ideal, but the function
-    // *should* be fast enough so this isn't noticeable, since it only
-    // happens on construction and when a field is changed.
-    if(_isEncoder)
+    // Don't instantiate our test vectors each time.
+    if(_expectedEncodeCalcInputVec.empty())
     {
-        // Don't instantiate our test vectors each time.
-        if(_expectedOutputCalcInputVec.empty())
-        {
-            _expectedOutputCalcInputVec.resize(_pConvCode->len);
-        }
-        if(_expectedOutputCalcOutputVec.empty())
-        {
-            // This should be more than enough.
-            _expectedOutputCalcOutputVec.resize(_pConvCode->len * 50);
-        }
-
-        int encodeRet = ::lte_conv_encode(
-                            _pConvCode,
-                            _expectedOutputCalcInputVec.data(),
-                            _expectedOutputCalcOutputVec.data());
-        throwOnErrCode(encodeRet);
-
-        _expectedOutputSize = encodeRet;
+        _expectedEncodeCalcInputVec.resize(_pConvCode->len);
     }
+    if(_expectedEncodeCalcOutputVec.empty())
+    {
+        // This should be more than enough.
+        _expectedEncodeCalcOutputVec.resize(_pConvCode->len * 50);
+    }
+
+    int encodeRet = ::lte_conv_encode(
+                        _pConvCode,
+                        _expectedEncodeCalcInputVec.data(),
+                        _expectedEncodeCalcOutputVec.data());
+    throwOnErrCode(encodeRet);
+
+    _expectedEncodeSize = encodeRet;
 }
 
 void ConvolutionBase::encoderWork()
@@ -154,7 +152,7 @@ void ConvolutionBase::encoderWork()
 
     const auto numBlocks = std::min<size_t>(
                                input->elements() / _pConvCode->len,
-                               output->elements() / _expectedOutputSize);
+                               output->elements() / _expectedEncodeSize);
     if(0 == numBlocks) return;
 
     const std::uint8_t* buffIn = input->buffer();
@@ -168,25 +166,28 @@ void ConvolutionBase::encoderWork()
                              buffOut);
         throwOnErrCode(encodeRet);
 
-        if(encodeRet != _expectedOutputSize)
+        if(encodeRet != _expectedEncodeSize)
         {
             throw Pothos::AssertionViolationException(
                       "lte_conv_encode returned an unexpected output length",
                       Poco::format(
                           "Expected %s, got %s",
                           Poco::NumberFormatter::format(encodeRet),
-                          Poco::NumberFormatter::format(_expectedOutputSize)));
+                          Poco::NumberFormatter::format(_expectedEncodeSize)));
         }
 
         buffIn += _pConvCode->len;
         buffOut += encodeRet;
+
+        input->consume(_pConvCode->len);
+        output->produce(encodeRet);
     }
 }
 
 void ConvolutionBase::decoderWork()
 {
     const auto elems = this->workInfo().minElements;
-    if(elems < static_cast<size_t>(_pConvCode->len))
+    if(elems < size_t(_expectedEncodeSize))
     {
         return;
     }
@@ -194,12 +195,36 @@ void ConvolutionBase::decoderWork()
     auto input = this->input(0);
     auto output = this->output(0);
 
-    int decodeRet = ::lte_conv_decode(
-                         _pConvCode,
-                         input->buffer(),
-                         output->buffer());
-    throwOnErrCode(decodeRet);
+    const auto numBlocks = std::min<size_t>(
+                               input->elements() / _expectedEncodeSize,
+                               output->elements() / _pConvCode->len);
+    if(0 == numBlocks) return;
 
-    input->consume(_pConvCode->len);
-    output->produce(decodeRet);
+    const std::uint8_t* buffIn = input->buffer();
+    std::uint8_t* buffOut = output->buffer();
+
+    for(size_t block = 0; block < numBlocks; ++block)
+    {
+        int decodeRet = ::lte_conv_decode(
+                             _pConvCode,
+                             (const std::int8_t*)buffIn,
+                             buffOut);
+        throwOnErrCode(decodeRet);
+
+        if(decodeRet != _pConvCode->len)
+        {
+            throw Pothos::AssertionViolationException(
+                      "lte_conv_decode returned an unexpected output length",
+                      Poco::format(
+                          "Expected %s, got %s",
+                          Poco::NumberFormatter::format(decodeRet),
+                          Poco::NumberFormatter::format(_pConvCode->len)));
+        }
+
+        buffIn += _expectedEncodeSize;
+        buffOut += decodeRet;
+
+        input->consume(_expectedEncodeSize);
+        output->produce(_pConvCode->len);
+    }
 }

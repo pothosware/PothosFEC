@@ -269,7 +269,7 @@ static void testStandardCoderSymmetry(const std::string& standardName)
     POTHOS_TEST_EQUAL(standardName, decoder.call<std::string>("standard"));
 
     const auto length = encoder.call<size_t>("length");
-    const auto numInputs = length * 32;
+    const auto numInputs = length;
 
     auto randomInput = FECTests::getRandomInput(numInputs);
 
@@ -288,6 +288,13 @@ static void testStandardCoderSymmetry(const std::string& standardName)
         topology.commit();
         POTHOS_TEST_TRUE(topology.waitInactive(0.05));
     }
+
+    auto decodedOutput = collectorSink.call<Pothos::BufferChunk>("getBuffer");
+    POTHOS_TEST_EQUAL(randomInput.length, decodedOutput.length);
+    POTHOS_TEST_EQUALA(
+        randomInput.as<const std::uint8_t*>(),
+        decodedOutput.as<const std::uint8_t*>(),
+        randomInput.length);
 }
 
 POTHOS_TEST_BLOCK("/fec/tests", test_standard_conv_coder_symmetry)

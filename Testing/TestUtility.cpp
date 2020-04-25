@@ -64,12 +64,12 @@ static int add_noise(unsigned char *in, signed char *out,
 }
 
 /* Generate soft bits with ~2.3% crossover probability */
-static int uint8_to_err(int8_t *dst, uint8_t *src, int n)
+static int uint8_to_err(uint8_t *dst, uint8_t *src, int n)
 {
 	int i, err = 0;
 
 	for (i = 0; i < n; i++) {
-		if ((!src[i] && (dst[i] >= 0)) || (src[i] && (dst[i] <= 0)))
+		if ((!src[i] && dst[i]) || (src[i] && !dst[i]))
 			err++;
 	}
 

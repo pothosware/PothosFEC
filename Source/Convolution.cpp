@@ -4,24 +4,27 @@
 #include "ConvolutionBase.hpp"
 #include "Utility.hpp"
 
-#include <json.hpp>
-
-#include <Pothos/Callable.hpp>
-#include <Pothos/Exception.hpp>
-
 extern "C"
 {
     #include "ConvCodes.h"
 };
 
-#include <map>
+#include <json.hpp>
+
+#include <Pothos/Callable.hpp>
+#include <Pothos/Exception.hpp>
+#include <Pothos/Plugin.hpp>
+
+#include <Poco/Format.h>
+#include <Poco/String.h>
+
+#include <algorithm>
+#include <functional>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-// Store this in a slightly less performant map so overlay() returns
-// an alphabetized list.
-static const std::map<std::string, const lte_conv_code*> ConvCodeMap =
+static const std::unordered_map<std::string, const lte_conv_code*> ConvCodeMap =
 {
     {"GSM XCCH", get_gsm_conv_xcch()},
     {"GPRS CS2", get_gsm_conv_cs2()},
@@ -49,6 +52,7 @@ static const std::map<std::string, const lte_conv_code*> ConvCodeMap =
     {"LTE PBCH", get_lte_conv_pbch()},
     //{"", get_conv_trunc()},
 };
+using ConvCodeMapPair = std::unordered_map<std::string, const lte_conv_code*>::value_type;
 
 // The generator polynomial is stored in a static array of size 4, but the
 // values may not be of size 4. The simplest workaround for the case where
@@ -153,36 +157,54 @@ private:
     std::string _standard;
 };
 
-/*
- * |PothosDoc Convolutional Encoder
- *
- * |category /FEC/Convolution
- * |keywords fec lte gsm standard
- * |factory /fec/conv_encoder(standard)
- *
- * |param standard[Standard] The configuration to use.
- * |default "GSM XCCH"
- * |widget ComboBox(editable=false)
- * |preview enable
- */
-static Pothos::BlockRegistry registerConvEncoder(
-    "/fec/conv_encoder",
-    Pothos::Callable(&Convolution::make)
-        .bind(true, 1));
+//
+// Registrations
+//
 
-/*
- * |PothosDoc Convolutional Decoder
- *
- * |category /FEC/Convolution
- * |keywords fec lte gsm standard
- * |factory /fec/conv_decoder(standard)
- *
- * |param standard[Standard] The configuration to use.
- * |default "GSM XCCH"
- * |widget ComboBox(editable=false)
- * |preview enable
- */
-static Pothos::BlockRegistry registerConvDecoder(
-    "/fec/conv_decoder",
-    Pothos::Callable(&Convolution::make)
-        .bind(false, 1));
+static std::string convertStandardName(const std::string& standardName)
+{
+    static const std::vector<std::string> charsToReplace{" ","-","."};
+    auto convertedStandardName = Poco::toLower(standardName);
+    for(const auto& charToReplace: charsToReplace)
+    {
+        Poco::replaceInPlace(convertedStandardName, charToReplace, std::string("_"));
+    }
+
+    return convertedStandardName;
+}
+
+static std::vector<Pothos::BlockRegistry> _getConvolutionBlockRegistries()
+{
+    auto convCodeMapPairToBlockRegistry = [&](const ConvCodeMapPair& mapPair, bool isEncoder) -> Pothos::BlockRegistry
+    {
+        const auto& standardName = mapPair.first;
+        const auto convertedStandardName = convertStandardName(standardName);
+
+        return Pothos::BlockRegistry(
+                   ("/fec/"+convertedStandardName+(isEncoder ? "_encoder" : "_decoder")),
+                   Pothos::Callable(&Convolution::make)
+                       .bind(standardName, 0)
+                       .bind(isEncoder, 1));
+    };
+
+    auto convCodeMapPairToEncoderBlockRegistry = std::bind(convCodeMapPairToBlockRegistry, std::placeholders::_1, true);
+    auto convCodeMapPairToDecoderBlockRegistry = std::bind(convCodeMapPairToBlockRegistry, std::placeholders::_1, false);
+
+    std::vector<Pothos::BlockRegistry> blockRegistries;
+    blockRegistries.reserve(ConvCodeMap.size()*2);
+
+    std::transform(
+        ConvCodeMap.begin(),
+        ConvCodeMap.end(),
+        std::back_inserter(blockRegistries),
+        convCodeMapPairToEncoderBlockRegistry);
+    std::transform(
+        ConvCodeMap.begin(),
+        ConvCodeMap.end(),
+        std::back_inserter(blockRegistries),
+        convCodeMapPairToDecoderBlockRegistry);
+
+    return blockRegistries;
+}
+
+static const auto convolutionBlockRegistries = _getConvolutionBlockRegistries();

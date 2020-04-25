@@ -40,8 +40,9 @@ POTHOS_MODULE_UTIL(
     SOURCES
         Source/BitErrorRate.cpp
         Source/ConvCodes.c
-        Source/ConvolutionBase.cpp
         Source/Convolution.cpp
+        Source/ConvolutionBase.cpp
+        Source/ConvolutionDocs.cpp
         Source/GenericConvolution.cpp
         Source/LTETurboDecoder.cpp
         Source/LTETurboEncoder.cpp

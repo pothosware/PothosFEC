@@ -38,6 +38,7 @@ include(PothosUtil)
 POTHOS_MODULE_UTIL(
     TARGET FECBlocks
     SOURCES
+        Source/BitErrorRate.cpp
         Source/ConvCodes.c
         Source/ConvolutionBase.cpp
         Source/Convolution.cpp

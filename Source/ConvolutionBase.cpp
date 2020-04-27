@@ -141,90 +141,52 @@ void ConvolutionBase::_getExpectedOutputSize()
 
 void ConvolutionBase::encoderWork()
 {
-    auto elems = this->workInfo().minElements;
-    if(elems < static_cast<size_t>(_pConvCode->len))
+    auto input = this->input(0);
+    auto output = this->output(0);
+
+    if((input->elements() < static_cast<size_t>(_pConvCode->len)) ||
+       (output->elements() < static_cast<size_t>(_expectedEncodeSize)))
     {
         return;
     }
 
-    auto input = this->input(0);
-    auto output = this->output(0);
+    int encodeRet = ::lte_conv_encode(
+                         _pConvCode,
+                         input->buffer(),
+                         output->buffer());
+    throwOnErrCode(encodeRet);
 
-    const auto numBlocks = std::min<size_t>(
-                               input->elements() / _pConvCode->len,
-                               output->elements() / _expectedEncodeSize);
-    if(0 == numBlocks) return;
-
-    const std::uint8_t* buffIn = input->buffer();
-    std::uint8_t* buffOut = output->buffer();
-
-    for(size_t block = 0; block < numBlocks; ++block)
+    if(encodeRet != _expectedEncodeSize)
     {
-        int encodeRet = ::lte_conv_encode(
-                             _pConvCode,
-                             buffIn,
-                             buffOut);
-        throwOnErrCode(encodeRet);
-
-        if(encodeRet != _expectedEncodeSize)
-        {
-            throw Pothos::AssertionViolationException(
-                      "lte_conv_encode returned an unexpected output length",
-                      Poco::format(
-                          "Expected %s, got %s",
-                          Poco::NumberFormatter::format(encodeRet),
-                          Poco::NumberFormatter::format(_expectedEncodeSize)));
-        }
-
-        buffIn += _pConvCode->len;
-        buffOut += encodeRet;
-
-        input->consume(_pConvCode->len);
-        output->produce(encodeRet);
+        throw Pothos::AssertionViolationException(
+                  "lte_conv_encode returned an unexpected output length",
+                  Poco::format(
+                      "Expected %s, got %s",
+                      Poco::NumberFormatter::format(encodeRet),
+                      Poco::NumberFormatter::format(_expectedEncodeSize)));
     }
+
+    input->consume(_pConvCode->len);
+    output->produce(_expectedEncodeSize);
 }
 
 void ConvolutionBase::decoderWork()
 {
-    const auto elems = this->workInfo().minElements;
-    if(elems < size_t(_expectedEncodeSize))
+    auto input = this->input(0);
+    auto output = this->output(0);
+
+    if((input->elements() < static_cast<size_t>(_expectedEncodeSize)) ||
+       (output->elements() < static_cast<size_t>(_pConvCode->len)))
     {
         return;
     }
 
-    auto input = this->input(0);
-    auto output = this->output(0);
+    int decodeRet = ::lte_conv_decode(
+                         _pConvCode,
+                         input->buffer(),
+                         output->buffer());
+    throwOnErrCode(decodeRet);
 
-    const auto numBlocks = std::min<size_t>(
-                               input->elements() / _expectedEncodeSize,
-                               output->elements() / _pConvCode->len);
-    if(0 == numBlocks) return;
-
-    const std::uint8_t* buffIn = input->buffer();
-    std::uint8_t* buffOut = output->buffer();
-
-    for(size_t block = 0; block < numBlocks; ++block)
-    {
-        int decodeRet = ::lte_conv_decode(
-                             _pConvCode,
-                             (const std::int8_t*)buffIn,
-                             buffOut);
-        throwOnErrCode(decodeRet);
-
-        if(decodeRet != _pConvCode->len)
-        {
-            throw Pothos::AssertionViolationException(
-                      "lte_conv_decode returned an unexpected output length",
-                      Poco::format(
-                          "Expected %s, got %s",
-                          Poco::NumberFormatter::format(decodeRet),
-                          Poco::NumberFormatter::format(_pConvCode->len)));
-        }
-
-        buffIn += _expectedEncodeSize;
-        buffOut += decodeRet;
-
-        input->consume(_expectedEncodeSize);
-        output->produce(_pConvCode->len);
-    }
+    input->consume(_expectedEncodeSize);
+    output->produce(_pConvCode->len);
 }

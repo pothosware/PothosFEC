@@ -261,7 +261,7 @@ static void testStandardCoderSymmetry(const std::string& standardName)
     std::cout << " * Testing " << standardName << "..." << std::endl;
 
     const auto encoderBlockPath = Poco::format("/fec/%s_encoder", convertStandardName(standardName));
-    const auto decoderBlockPath = Poco::format("/fec/%s_encoder", convertStandardName(standardName));
+    const auto decoderBlockPath = Poco::format("/fec/%s_decoder", convertStandardName(standardName));
 
     auto encoder = Pothos::BlockRegistry::make(encoderBlockPath);
     auto decoder = Pothos::BlockRegistry::make(decoderBlockPath);

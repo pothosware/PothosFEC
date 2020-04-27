@@ -269,7 +269,11 @@ static void testStandardCoderSymmetry(const std::string& standardName)
     POTHOS_TEST_EQUAL(standardName, decoder.call<std::string>("standard"));
 
     const auto length = encoder.call<size_t>("length");
-    const auto numInputs = length;
+    const auto numInputs = length * 32;
+
+    //
+    // Encode random inputs and introduce some noise.
+    //
 
     auto randomInput = FECTests::getRandomInput(numInputs);
 
@@ -282,19 +286,62 @@ static void testStandardCoderSymmetry(const std::string& standardName)
         Pothos::Topology topology;
 
         topology.connect(feederSource, 0, encoder, 0);
-        topology.connect(encoder, 0, decoder, 0);
+        topology.connect(encoder, 0, collectorSink, 0);
+
+        topology.commit();
+        POTHOS_TEST_TRUE(topology.waitInactive(0.05));
+    }
+
+    auto encodedValues = collectorSink.call<Pothos::BufferChunk>("getBuffer");
+
+    int numBitsChanged = 0;
+    auto noisyEncodedValues = FECTests::addNoiseAndGetError(
+        encodedValues,
+        FECTests::defaultSNR,
+        FECTests::defaultAmp,
+        &numBitsChanged);
+
+    //
+    // Decode the noisy encoded values.
+    //
+
+    feederSource.call("feedBuffer", noisyEncodedValues);
+    collectorSink.call("clear");
+
+    {
+        Pothos::Topology topology;
+
+        topology.connect(feederSource, 0, decoder, 0);
         topology.connect(decoder, 0, collectorSink, 0);
 
         topology.commit();
         POTHOS_TEST_TRUE(topology.waitInactive(0.05));
     }
 
-    auto decodedOutput = collectorSink.call<Pothos::BufferChunk>("getBuffer");
-    POTHOS_TEST_EQUAL(randomInput.length, decodedOutput.length);
-    POTHOS_TEST_EQUALA(
-        randomInput.as<const std::uint8_t*>(),
-        decodedOutput.as<const std::uint8_t*>(),
-        randomInput.length);
+    //
+    // See how close our decoded values are to the initial random inputs.
+    //
+
+    auto decodedValues = collectorSink.call<Pothos::BufferChunk>("getBuffer");
+    POTHOS_TEST_EQUAL(randomInput.length, decodedValues.length);
+
+    auto decodedFeederSource = Pothos::BlockRegistry::make("/blocks/feeder_source", "uint8");
+    decodedFeederSource.call("feedBuffer", decodedValues);
+    feederSource.call("feedBuffer", randomInput);
+
+    auto ber = Pothos::BlockRegistry::make("/fec/bit_error_rate", false /*packed*/);
+
+    {
+        Pothos::Topology topology;
+
+        topology.connect(feederSource, 0, ber, 0);
+        topology.connect(decodedFeederSource, 0, ber, 1);
+
+        topology.commit();
+        POTHOS_TEST_TRUE(topology.waitInactive(0.05));
+    }
+
+    POTHOS_TEST_LT(ber.call<double>("ber"), 1e-3);
 }
 
 POTHOS_TEST_BLOCK("/fec/tests", test_standard_conv_coder_symmetry)

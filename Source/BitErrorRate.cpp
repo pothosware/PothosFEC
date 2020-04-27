@@ -5,6 +5,8 @@
 #include <Pothos/Framework.hpp>
 #include <Pothos/Plugin.hpp>
 
+#include <Poco/Mutex.h>
+
 class BitErrorRate: public Pothos::Block
 {
     public:
@@ -15,7 +17,9 @@ class BitErrorRate: public Pothos::Block
 
         BitErrorRate(bool packed):
             Pothos::Block(),
-            _packed(packed)
+            _packed(packed),
+            _bitsChecked(0),
+            _mismatchedBits(0)
         {
             this->setupInput(0, "uint8");
             this->setupInput(1, "uint8");
@@ -34,12 +38,16 @@ class BitErrorRate: public Pothos::Block
 
         double ber() const
         {
+            Poco::FastMutex::ScopedLock lock(_fieldMutex);
+
             return (double(_mismatchedBits) / double(_bitsChecked));
         }
 
         void work() override
         {
             if(0 == this->workInfo().minInElements) return;
+
+            Poco::FastMutex::ScopedLock lock(_fieldMutex);
 
             if(_packed) _packedWork();
             else        _unpackedWork();
@@ -50,6 +58,8 @@ class BitErrorRate: public Pothos::Block
 
         size_t _bitsChecked;
         size_t _mismatchedBits;
+
+        mutable Poco::FastMutex _fieldMutex;
 
         void _packedWork()
         {

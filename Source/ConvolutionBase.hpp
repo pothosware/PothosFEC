@@ -20,6 +20,8 @@ public:
 
     virtual ~ConvolutionBase();
 
+    void activate() override;
+
     int N() const;
 
     int K() const;

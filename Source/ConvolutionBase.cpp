@@ -33,11 +33,14 @@ ConvolutionBase::ConvolutionBase(lte_conv_code* pConvCode, bool isEncoder):
     this->registerProbe("gen");
     this->registerProbe("puncture");
     this->registerProbe("terminationType");
-
-    this->_getExpectedOutputSize();
 }
 
 ConvolutionBase::~ConvolutionBase() {}
+
+void ConvolutionBase::activate()
+{
+    this->_getExpectedOutputSize();
+}
 
 int ConvolutionBase::N() const
 {

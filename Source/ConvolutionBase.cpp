@@ -76,29 +76,14 @@ std::vector<unsigned> ConvolutionBase::gen() const
 {
     Poco::FastMutex::ScopedLock lock(_convCodeMutex);
 
-    return std::vector<unsigned>(
-              _pConvCode->gen,
-              (_pConvCode->gen + _genArrLength));
+    return this->_gen();
 }
 
 std::vector<int> ConvolutionBase::puncture() const
 {
     Poco::FastMutex::ScopedLock lock(_convCodeMutex);
 
-    std::vector<int> ret;
-    if(_pConvCode->punc)
-    {
-        // Since we manage the underlying buffer, we should be able to assume
-        // that there's a -1 somewhere in there.
-        size_t negOnePos = 0;
-        while(_pConvCode->punc[negOnePos] != -1) ++negOnePos;
-
-        // This removes the -1 terminator, since that's an implementation
-        // detail.
-        ret = std::vector<int>(_pConvCode->punc, _pConvCode->punc+negOnePos);
-    }
-
-    return ret;
+    return this->_punctureFunc();
 }
 
 std::string ConvolutionBase::terminationType() const
@@ -130,6 +115,31 @@ void ConvolutionBase::work()
 
     if(_isEncoder) this->encoderWork();
     else           this->decoderWork();
+}
+
+std::vector<unsigned> ConvolutionBase::_gen() const
+{
+    return std::vector<unsigned>(
+              _pConvCode->gen,
+              (_pConvCode->gen + _genArrLength));
+}
+
+std::vector<int> ConvolutionBase::_punctureFunc() const
+{
+    std::vector<int> ret;
+    if(_pConvCode->punc)
+    {
+        // Since we manage the underlying buffer, we should be able to assume
+        // that there's a -1 somewhere in there.
+        size_t negOnePos = 0;
+        while(_pConvCode->punc[negOnePos] != -1) ++negOnePos;
+
+        // This removes the -1 terminator, since that's an implementation
+        // detail.
+        ret = std::vector<int>(_pConvCode->punc, _pConvCode->punc+negOnePos);
+    }
+
+    return ret;
 }
 
 // The logic to determine the expected output size is somewhat

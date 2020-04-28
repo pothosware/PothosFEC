@@ -51,6 +51,10 @@ protected:
     std::vector<std::uint8_t> _expectedEncodeCalcInputVec;
     std::vector<std::uint8_t> _expectedEncodeCalcOutputVec;
 
+    std::vector<unsigned> _gen() const;
+
+    std::vector<int> _punctureFunc() const;
+
     void _getExpectedOutputSize();
 
     void encoderWork();

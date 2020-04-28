@@ -19,8 +19,7 @@ public:
     }
 
     GenericConvolution(bool isEncoder):
-        ConvolutionBase(nullptr, isEncoder),
-        _getOutputSizeOnChange(false)
+        ConvolutionBase(nullptr, isEncoder)
     {
         std::memset(&_convCode, 0, sizeof(_convCode));
         _pConvCode = &_convCode;
@@ -42,20 +41,18 @@ public:
         this->registerSignal("terminationTypeChanged");
 
         // Note: defaults come from GSM XCCH.
-        this->setN(2);
-        this->setK(5);
-        this->setLength(224);
-        this->setRGen(0);
-        this->setGen({023, 033});
-        this->setPuncture({});
-        this->setTerminationType("Flush");
-
-        _getOutputSizeOnChange = true;
+        this->_setN(2);
+        this->_setK(5);
+        this->_setLength(224);
+        this->_setRGen(0);
+        this->_setGen({023, 033});
+        this->_setPuncture({});
+        this->_setTerminationType("Flush");
     }
 
     ~GenericConvolution() {}
 
-    // TODO: other validation checks, restore old values if invalid
+    // TODO: other validation checks
 
     void setN(int n)
     {
@@ -66,9 +63,19 @@ public:
 
         Poco::FastMutex::ScopedLock lock(_convCodeMutex);
 
-        _pConvCode->n = n;
+        int oldN = 0;
+        try
+        {
+            this->_setN(n, &oldN);
+            this->_getExpectedOutputSize();
+        }
+        catch(const Pothos::Exception& ex)
+        {
+            this->_setN(oldN);
+            this->_getExpectedOutputSize();
+            throw;
+        }
 
-        if(_getOutputSizeOnChange) this->_getExpectedOutputSize();
         this->emitSignal("NChanged", n);
     }
 
@@ -81,9 +88,19 @@ public:
 
         Poco::FastMutex::ScopedLock lock(_convCodeMutex);
 
-        _pConvCode->k = k;
+        int oldK = 0;
+        try
+        {
+            this->_setK(k, &oldK);
+            this->_getExpectedOutputSize();
+        }
+        catch(const Pothos::Exception& ex)
+        {
+            this->_setK(oldK);
+            this->_getExpectedOutputSize();
+            throw;
+        }
 
-        if(_getOutputSizeOnChange) this->_getExpectedOutputSize();
         this->emitSignal("KChanged", k);
     }
 
@@ -96,9 +113,19 @@ public:
 
         Poco::FastMutex::ScopedLock lock(_convCodeMutex);
 
-        _pConvCode->len = length;
+        int oldLength = 0;
+        try
+        {
+            this->_setLength(length, &oldLength);
+            this->_getExpectedOutputSize();
+        }
+        catch(const Pothos::Exception& ex)
+        {
+            this->_setLength(oldLength);
+            this->_getExpectedOutputSize();
+            throw;
+        }
 
-        if(_getOutputSizeOnChange) this->_getExpectedOutputSize();
         this->emitSignal("lengthChanged", length);
     }
 
@@ -111,9 +138,19 @@ public:
 
         Poco::FastMutex::ScopedLock lock(_convCodeMutex);
 
-        _pConvCode->rgen = rgen;
+        int oldRGen = 0;
+        try
+        {
+            this->_setRGen(rgen, &oldRGen);
+            this->_getExpectedOutputSize();
+        }
+        catch(const Pothos::Exception& ex)
+        {
+            this->_setRGen(oldRGen);
+            this->_getExpectedOutputSize();
+            throw;
+        }
 
-        if(_getOutputSizeOnChange) this->_getExpectedOutputSize();
         this->emitSignal("rgenChanged", rgen);
     }
 
@@ -126,17 +163,19 @@ public:
 
         Poco::FastMutex::ScopedLock lock(_convCodeMutex);
 
-        // This is stored as a static array of size 4.
-        std::memset(_pConvCode->gen, 0, sizeof(_pConvCode->gen));
-        if(!gen.empty())
+        std::vector<unsigned> oldGen;
+        try
         {
-            std::memcpy(
-                _pConvCode->gen,
-                gen.data(),
-                (gen.size() * sizeof(unsigned)));
+            this->_setGen(gen, &oldGen);
+            this->_getExpectedOutputSize();
+        }
+        catch(const Pothos::Exception& ex)
+        {
+            this->_setGen(oldGen);
+            this->_getExpectedOutputSize();
+            throw;
         }
 
-        if(_getOutputSizeOnChange) this->_getExpectedOutputSize();
         this->emitSignal("genChanged", gen);
     }
 
@@ -158,6 +197,93 @@ public:
 
         Poco::FastMutex::ScopedLock lock(_convCodeMutex);
 
+        std::vector<int> oldPuncture;
+        try
+        {
+            this->_setPuncture(puncture, &oldPuncture);
+            this->_getExpectedOutputSize();
+        }
+        catch(const Pothos::Exception& ex)
+        {
+            this->_setPuncture(oldPuncture);
+            this->_getExpectedOutputSize();
+            throw;
+        }
+
+        this->emitSignal("punctureChanged", puncture);
+    }
+
+    void setTerminationType(const std::string& terminationType)
+    {
+        Poco::FastMutex::ScopedLock lock(_convCodeMutex);
+
+        std::string oldTerminationType;
+        try
+        {
+            this->_setTerminationType(terminationType, &oldTerminationType);
+            this->_getExpectedOutputSize();
+        }
+        catch(const Pothos::Exception& ex)
+        {
+            this->_setTerminationType(oldTerminationType);
+            this->_getExpectedOutputSize();
+            throw;
+        }
+
+        this->emitSignal("terminationTypeChanged", terminationType);
+    }
+
+private:
+    lte_conv_code _convCode; // For base class to point to
+    std::vector<int> _puncture; // For _convCode's pointer to point to
+
+    inline void _setN(int N, int* oldNOut = nullptr)
+    {
+        if(oldNOut) *oldNOut = _pConvCode->n;
+        _pConvCode->n = N;
+    }
+
+    inline void _setK(int K, int* oldKOut = nullptr)
+    {
+        if(oldKOut) *oldKOut = _pConvCode->k;
+        _pConvCode->k = K;
+    }
+
+    inline void _setLength(int length, int* oldLengthOut = nullptr)
+    {
+        if(oldLengthOut) *oldLengthOut = _pConvCode->len;
+        _pConvCode->len = length;
+    }
+
+    inline void _setRGen(int rgen, int* oldRGenOut = nullptr)
+    {
+        if(oldRGenOut) *oldRGenOut = _pConvCode->rgen;
+        _pConvCode->rgen = rgen;
+    }
+
+    void _setGen(
+        const std::vector<unsigned>& gen,
+        std::vector<unsigned>* oldGenOut = nullptr)
+    {
+        if(oldGenOut) *oldGenOut = this->_gen();
+
+        // This is stored as a static array of size 4.
+        std::memset(_pConvCode->gen, 0, sizeof(_pConvCode->gen));
+        if(!gen.empty())
+        {
+            std::memcpy(
+                _pConvCode->gen,
+                gen.data(),
+                (gen.size() * sizeof(unsigned)));
+        }
+    }
+
+    void _setPuncture(
+        const std::vector<int>& puncture,
+        std::vector<int>* oldPunctureOut = nullptr)
+    {
+        if(oldPunctureOut) *oldPunctureOut = this->_punctureFunc();
+
         _puncture = puncture;
 
         if(puncture.empty())
@@ -170,14 +296,13 @@ public:
             _puncture.emplace_back(-1);
             _pConvCode->punc = _puncture.data();
         }
-
-        if(_getOutputSizeOnChange) this->_getExpectedOutputSize();
-        this->emitSignal("punctureChanged", puncture);
     }
 
-    void setTerminationType(const std::string& terminationType)
+    void _setTerminationType(
+        const std::string& terminationType,
+        std::string* oldTerminationTypeOut = nullptr)
     {
-        Poco::FastMutex::ScopedLock lock(_convCodeMutex);
+        if(oldTerminationTypeOut) *oldTerminationTypeOut = this->terminationType();
 
         if("Flush" == terminationType)
         {
@@ -191,16 +316,7 @@ public:
         {
             throw Pothos::InvalidArgumentException("Invalid termination type: "+terminationType);
         }
-
-        if(_getOutputSizeOnChange) this->_getExpectedOutputSize();
-        this->emitSignal("terminationTypeChanged", terminationType);
     }
-
-private:
-    lte_conv_code _convCode; // For base class to point to
-    std::vector<int> _puncture; // For _convCode's pointer to point to
-
-    bool _getOutputSizeOnChange;
 };
 
 /*

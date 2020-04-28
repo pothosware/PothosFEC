@@ -41,7 +41,7 @@ ConvolutionBase::~ConvolutionBase() {}
 
 void ConvolutionBase::activate()
 {
-    this->_getExpectedOutputSize();
+    this->_getEncodeSize();
 }
 
 int ConvolutionBase::N() const
@@ -148,7 +148,7 @@ std::vector<int> ConvolutionBase::_punctureFunc() const
 // ideal, but the function *should* be fast enough so this isn't
 // noticeable, since it only happens on construction and when
 // a field is changed.
-void ConvolutionBase::_getExpectedOutputSize()
+void ConvolutionBase::_getEncodeSize()
 {
     // Don't instantiate our test vectors each time.
     if(_expectedEncodeCalcInputVec.empty())

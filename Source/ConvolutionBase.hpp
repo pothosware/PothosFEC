@@ -55,7 +55,7 @@ protected:
 
     std::vector<int> _punctureFunc() const;
 
-    void _getExpectedOutputSize();
+    void _getEncodeSize();
 
     void encoderWork();
 

@@ -175,3 +175,5 @@ POTHOS_TEST_BLOCK("/fec/tests", test_lte_coder_symmetry)
         outputBuffer.as<const std::uint8_t*>(),
         randomInput.elements());
 }
+
+// TODO: add noise to encoded values, decode, check BER

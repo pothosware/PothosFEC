@@ -5,6 +5,8 @@
 
 #include <Pothos/Framework.hpp>
 
+#include <Poco/Mutex.h>
+
 extern "C"
 {
 #include <turbofec/conv.h>
@@ -42,6 +44,8 @@ protected:
     lte_conv_code* _pConvCode;
     size_t _genArrLength;
     bool _isEncoder;
+
+    mutable Poco::FastMutex _convCodeMutex;
 
     int _expectedEncodeSize;
     std::vector<std::uint8_t> _expectedEncodeCalcInputVec;

@@ -9,6 +9,8 @@
 
 #include <Pothos/Exception.hpp>
 
+#include <iostream>
+
 ConvolutionBase::ConvolutionBase(lte_conv_code* pConvCode, bool isEncoder):
     Pothos::Block(),
     _pConvCode(pConvCode),
@@ -44,26 +46,36 @@ void ConvolutionBase::activate()
 
 int ConvolutionBase::N() const
 {
+    Poco::FastMutex::ScopedLock lock(_convCodeMutex);
+
     return _pConvCode->n;
 }
 
 int ConvolutionBase::K() const
 {
+    Poco::FastMutex::ScopedLock lock(_convCodeMutex);
+
     return _pConvCode->k;
 }
 
 int ConvolutionBase::length() const
 {
+    Poco::FastMutex::ScopedLock lock(_convCodeMutex);
+
     return _pConvCode->len;
 }
 
 unsigned ConvolutionBase::rgen() const
 {
+    Poco::FastMutex::ScopedLock lock(_convCodeMutex);
+
     return _pConvCode->rgen;
 }
 
 std::vector<unsigned> ConvolutionBase::gen() const
 {
+    Poco::FastMutex::ScopedLock lock(_convCodeMutex);
+
     return std::vector<unsigned>(
               _pConvCode->gen,
               (_pConvCode->gen + _genArrLength));
@@ -71,6 +83,8 @@ std::vector<unsigned> ConvolutionBase::gen() const
 
 std::vector<int> ConvolutionBase::puncture() const
 {
+    Poco::FastMutex::ScopedLock lock(_convCodeMutex);
+
     std::vector<int> ret;
     if(_pConvCode->punc)
     {
@@ -89,6 +103,8 @@ std::vector<int> ConvolutionBase::puncture() const
 
 std::string ConvolutionBase::terminationType() const
 {
+    Poco::FastMutex::ScopedLock lock(_convCodeMutex);
+
     std::string ret;
 
     switch(_pConvCode->term)
@@ -110,6 +126,8 @@ std::string ConvolutionBase::terminationType() const
 
 void ConvolutionBase::work()
 {
+    Poco::FastMutex::ScopedLock lock(_convCodeMutex);
+
     if(_isEncoder) this->encoderWork();
     else           this->decoderWork();
 }
@@ -127,11 +145,9 @@ void ConvolutionBase::_getExpectedOutputSize()
     {
         _expectedEncodeCalcInputVec.resize(_pConvCode->len);
     }
-    if(_expectedEncodeCalcOutputVec.empty())
-    {
-        // This should be more than enough.
-        _expectedEncodeCalcOutputVec.resize(_pConvCode->len * 50);
-    }
+
+    // This should be more than enough.
+    _expectedEncodeCalcOutputVec.resize(_pConvCode->len * 500);
 
     int encodeRet = ::lte_conv_encode(
                         _pConvCode,

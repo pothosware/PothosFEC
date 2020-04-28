@@ -362,3 +362,132 @@ POTHOS_TEST_BLOCK("/fec/tests", test_standard_conv_coder_symmetry)
         testStandardCoderSymmetry(standardName);
     }
 }
+
+//
+// Test that getters and setters match for generic coders.
+//
+
+static void testGenericConvCoderSetter(const Pothos::Proxy& convCoder)
+{
+    static const std::vector<int> validN = {2,3,4};
+    static const std::vector<int> validK = {5,7};
+    constexpr size_t testLength = 128;
+    constexpr int testRGen = 037;
+    static const std::vector<int> testGen = {0100, 0145, 0175, 020};
+    static const std::vector<int> testPunc = {5, 10, 50, 20, 25};
+    static const std::vector<std::string> validTermTypes = {"Flush", "Tail-biting"};
+
+    for(int N: validN)
+    {
+        convCoder.call("setN", N);
+        POTHOS_TEST_EQUAL(N, convCoder.call("N"));
+    }
+    for(int K: validK)
+    {
+        convCoder.call("setK", K);
+        POTHOS_TEST_EQUAL(K, convCoder.call("K"));
+    }
+
+    convCoder.call("setLength", testLength);
+    POTHOS_TEST_EQUAL(testLength, convCoder.call("length"));
+
+    convCoder.call("setRGen", testRGen);
+    POTHOS_TEST_EQUAL(testRGen, convCoder.call("rgen"));
+
+    convCoder.call("setGen", testGen);
+    POTHOS_TEST_EQUALV(testGen, convCoder.call<std::vector<int>>("gen"));
+
+    convCoder.call("setPuncture", testPunc);
+    POTHOS_TEST_EQUALV(testPunc, convCoder.call<std::vector<int>>("puncture"));
+
+    for(const auto& termType: validTermTypes)
+    {
+        convCoder.call("setTerminationType", termType);
+        POTHOS_TEST_EQUAL(termType, convCoder.call("terminationType"));
+    }
+}
+
+POTHOS_TEST_BLOCK("/fec/tests", test_generic_conv_coder_setter)
+{
+    const std::vector<std::string> genericCoders =
+    {
+        "/fec/generic_conv_encoder",
+        "/fec/generic_conv_decoder"
+    };
+    for(const auto& coder: genericCoders)
+    {
+        std::cout << " * Testing " << coder << std::endl;
+        testGenericConvCoderSetter(Pothos::BlockRegistry::make(coder));
+    }
+}
+
+//
+// Test with different parameters
+//
+
+POTHOS_TEST_BLOCK("/fec/tests", test_generic_conv_coders)
+{
+    const std::vector<int> validN = {2,3,4};
+    const std::vector<int> validK = {5,7};
+    const std::vector<unsigned> validLengths = {1,2,4,8,16,32,64,128,256};
+    const std::vector<unsigned> testRGen = {0,033,037};
+    const std::vector<std::vector<unsigned>> testGen = {{0100,0145,0175,0135},{033,025,020,035}};
+    const std::vector<std::vector<int>> testPunc = {{},{5,10,15,20},{100,50,23,75,85,200}};
+
+    auto encoder = Pothos::BlockRegistry::make("/fec/generic_conv_encoder");
+    auto decoder = Pothos::BlockRegistry::make("/fec/generic_conv_decoder");
+
+    for(int N: validN)
+    {
+        std::cout << " * N: " << N << std::endl;
+
+        encoder.call("setN", N);
+        decoder.call("setN", N);
+
+        for(int K: validK)
+        {
+            std::cout << "   * K: " << K << std::endl;
+
+            encoder.call("setK", K);
+            decoder.call("setK", K);
+
+            for(auto length: validLengths)
+            {
+                std::cout << "     * Length: " << length << std::endl;
+
+                encoder.call("setLength", length);
+                decoder.call("setLength", length);
+
+                for(const auto& gen: testGen)
+                {
+                    std::cout << "       * Gen: " << Pothos::Object(gen).toString() << std::endl;
+
+                    encoder.call("setGen", gen);
+                    decoder.call("setGen", gen);
+
+                    for(auto rgen: testRGen)
+                    {
+                        std::cout << "         * RGen: " << std::oct << rgen << std::dec << std::endl;
+
+                        encoder.call("setRGen", rgen);
+                        decoder.call("setRGen", rgen);
+
+                        for(const auto& punc: testPunc)
+                        {
+                            std::cout << "           * Puncture: " << Pothos::Object(punc).toString() << std::endl;
+
+                            encoder.call("setPuncture", punc);
+                            decoder.call("setPuncture", punc);
+
+                            // With arbitrary parameters, we have no guarantee of the quality
+                            // of the encoder/decoder, so this just puts the block through its
+                            // paces to make sure it doesn't crash.
+                            double ber = 0.0;
+                            testCodersAndGetBER(encoder, decoder, &ber);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

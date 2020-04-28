@@ -19,7 +19,8 @@ public:
     }
 
     GenericConvolution(bool isEncoder):
-        ConvolutionBase(nullptr, isEncoder)
+        ConvolutionBase(nullptr, isEncoder),
+        _getOutputSizeOnChange(false)
     {
         std::memset(&_convCode, 0, sizeof(_convCode));
         _pConvCode = &_convCode;
@@ -48,9 +49,13 @@ public:
         this->setGen({023, 033});
         this->setPuncture({});
         this->setTerminationType("Flush");
+
+        _getOutputSizeOnChange = true;
     }
 
     ~GenericConvolution() {}
+
+    // TODO: other validation checks, restore old values if invalid
 
     void setN(int n)
     {
@@ -59,8 +64,11 @@ public:
             throw Pothos::InvalidArgumentException("N must be in range [2,4]");
         }
 
+        Poco::FastMutex::ScopedLock lock(_convCodeMutex);
+
         _pConvCode->n = n;
 
+        if(_getOutputSizeOnChange) this->_getExpectedOutputSize();
         this->emitSignal("NChanged", n);
     }
 
@@ -71,8 +79,11 @@ public:
             throw Pothos::InvalidArgumentException("K must be 5 or 7");
         }
 
+        Poco::FastMutex::ScopedLock lock(_convCodeMutex);
+
         _pConvCode->k = k;
 
+        if(_getOutputSizeOnChange) this->_getExpectedOutputSize();
         this->emitSignal("KChanged", k);
     }
 
@@ -83,8 +94,11 @@ public:
             throw Pothos::InvalidArgumentException("Length must be positive");
         }
 
+        Poco::FastMutex::ScopedLock lock(_convCodeMutex);
+
         _pConvCode->len = length;
 
+        if(_getOutputSizeOnChange) this->_getExpectedOutputSize();
         this->emitSignal("lengthChanged", length);
     }
 
@@ -95,8 +109,11 @@ public:
             throw Pothos::InvalidArgumentException("RGen must be >= 0");
         }
 
+        Poco::FastMutex::ScopedLock lock(_convCodeMutex);
+
         _pConvCode->rgen = rgen;
 
+        if(_getOutputSizeOnChange) this->_getExpectedOutputSize();
         this->emitSignal("rgenChanged", rgen);
     }
 
@@ -106,6 +123,8 @@ public:
         {
             throw Pothos::InvalidArgumentException("Gen must be of size 0-4");
         }
+
+        Poco::FastMutex::ScopedLock lock(_convCodeMutex);
 
         // This is stored as a static array of size 4.
         std::memset(_pConvCode->gen, 0, sizeof(_pConvCode->gen));
@@ -117,6 +136,7 @@ public:
                 (gen.size() * sizeof(unsigned)));
         }
 
+        if(_getOutputSizeOnChange) this->_getExpectedOutputSize();
         this->emitSignal("genChanged", gen);
     }
 
@@ -136,6 +156,8 @@ public:
             throw Pothos::InvalidArgumentException("All puncture values must be >= 0.");
         }
 
+        Poco::FastMutex::ScopedLock lock(_convCodeMutex);
+
         _puncture = puncture;
 
         if(puncture.empty())
@@ -149,11 +171,14 @@ public:
             _pConvCode->punc = _puncture.data();
         }
 
+        if(_getOutputSizeOnChange) this->_getExpectedOutputSize();
         this->emitSignal("punctureChanged", puncture);
     }
 
     void setTerminationType(const std::string& terminationType)
     {
+        Poco::FastMutex::ScopedLock lock(_convCodeMutex);
+
         if("Flush" == terminationType)
         {
             _pConvCode->term = ::CONV_TERM_FLUSH;
@@ -167,12 +192,15 @@ public:
             throw Pothos::InvalidArgumentException("Invalid termination type: "+terminationType);
         }
 
+        if(_getOutputSizeOnChange) this->_getExpectedOutputSize();
         this->emitSignal("terminationTypeChanged", terminationType);
     }
 
 private:
     lte_conv_code _convCode; // For base class to point to
     std::vector<int> _puncture; // For _convCode's pointer to point to
+
+    bool _getOutputSizeOnChange;
 };
 
 /*

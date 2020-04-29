@@ -129,16 +129,11 @@ public:
         this->emitSignal("lengthChanged", length);
     }
 
-    void setRGen(int rgen)
+    void setRGen(unsigned rgen)
     {
-        if(rgen < 0)
-        {
-            throw Pothos::InvalidArgumentException("RGen must be >= 0");
-        }
-
         Poco::FastMutex::ScopedLock lock(_convCodeMutex);
 
-        int oldRGen = 0;
+        unsigned oldRGen = 0;
         try
         {
             this->_setRGen(rgen, &oldRGen);
@@ -255,7 +250,7 @@ private:
         _pConvCode->len = length;
     }
 
-    inline void _setRGen(int rgen, int* oldRGenOut = nullptr)
+    inline void _setRGen(unsigned rgen, unsigned* oldRGenOut = nullptr)
     {
         if(oldRGenOut) *oldRGenOut = _pConvCode->rgen;
         _pConvCode->rgen = rgen;
@@ -276,6 +271,8 @@ private:
                 gen.data(),
                 (gen.size() * sizeof(unsigned)));
         }
+
+        _genArrLength = gen.size();
     }
 
     void _setPuncture(
@@ -302,7 +299,7 @@ private:
         const std::string& terminationType,
         std::string* oldTerminationTypeOut = nullptr)
     {
-        if(oldTerminationTypeOut) *oldTerminationTypeOut = this->terminationType();
+        if(oldTerminationTypeOut) *oldTerminationTypeOut = this->_terminationType();
 
         if("Flush" == terminationType)
         {

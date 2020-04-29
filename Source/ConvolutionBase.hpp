@@ -55,6 +55,8 @@ protected:
 
     std::vector<int> _punctureFunc() const;
 
+    std::string _terminationType() const;
+
     void _getEncodeSize();
 
     void encoderWork();

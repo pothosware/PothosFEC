@@ -90,23 +90,7 @@ std::string ConvolutionBase::terminationType() const
 {
     Poco::FastMutex::ScopedLock lock(_convCodeMutex);
 
-    std::string ret;
-
-    switch(_pConvCode->term)
-    {
-        case ::CONV_TERM_FLUSH:
-            ret = "Flush";
-            break;
-
-        case ::CONV_TERM_TAIL_BITING:
-            ret = "Tail-biting";
-            break;
-
-        default:
-            throw Pothos::AssertionViolationException("Invalid termination");
-    }
-
-    return ret;
+    return this->_terminationType();
 }
 
 void ConvolutionBase::work()
@@ -137,6 +121,27 @@ std::vector<int> ConvolutionBase::_punctureFunc() const
         // This removes the -1 terminator, since that's an implementation
         // detail.
         ret = std::vector<int>(_pConvCode->punc, _pConvCode->punc+negOnePos);
+    }
+
+    return ret;
+}
+
+std::string ConvolutionBase::_terminationType() const
+{
+    std::string ret;
+
+    switch(_pConvCode->term)
+    {
+        case ::CONV_TERM_FLUSH:
+            ret = "Flush";
+            break;
+
+        case ::CONV_TERM_TAIL_BITING:
+            ret = "Tail-biting";
+            break;
+
+        default:
+            throw Pothos::AssertionViolationException("Invalid termination");
     }
 
     return ret;

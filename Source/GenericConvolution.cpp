@@ -10,6 +10,14 @@
 #include <algorithm>
 #include <cstring>
 
+static bool isVectorEmptyOrZeros(const std::vector<unsigned>& vec)
+{
+    if(vec.empty()) return true;
+
+    auto nonZeroIter = std::find_if(vec.begin(), vec.end(), [](unsigned v){return (v != 0);});
+    return (nonZeroIter == vec.end());
+}
+
 class GenericConvolution: public ConvolutionBase
 {
 public:
@@ -52,16 +60,14 @@ public:
 
     ~GenericConvolution() {}
 
-    // TODO: other validation checks
-
     void setN(int n)
     {
+        Poco::FastMutex::ScopedLock lock(_convCodeMutex);
+
         if((n < 2) || (n > 4))
         {
             throw Pothos::InvalidArgumentException("N must be in range [2,4]");
         }
-
-        Poco::FastMutex::ScopedLock lock(_convCodeMutex);
 
         int oldN = 0;
         try
@@ -81,12 +87,12 @@ public:
 
     void setK(int k)
     {
+        Poco::FastMutex::ScopedLock lock(_convCodeMutex);
+
         if((k != 5) && (k != 7))
         {
             throw Pothos::InvalidArgumentException("K must be 5 or 7");
         }
-
-        Poco::FastMutex::ScopedLock lock(_convCodeMutex);
 
         int oldK = 0;
         try
@@ -106,12 +112,12 @@ public:
 
     void setLength(int length)
     {
+        Poco::FastMutex::ScopedLock lock(_convCodeMutex);
+
         if(length < 1)
         {
             throw Pothos::InvalidArgumentException("Length must be positive");
         }
-
-        Poco::FastMutex::ScopedLock lock(_convCodeMutex);
 
         int oldLength = 0;
         try
@@ -133,6 +139,22 @@ public:
     {
         Poco::FastMutex::ScopedLock lock(_convCodeMutex);
 
+        if(rgen > 0)
+        {
+            if(::CONV_TERM_TAIL_BITING == _pConvCode->term)
+            {
+                throw Pothos::InvalidArgumentException(
+                          "Cannot set RGen to a positive value "
+                          "when termination is set to Tail-biting.");
+            }
+            else if(isVectorEmptyOrZeros(this->_gen()))
+            {
+                throw Pothos::InvalidArgumentException(
+                          "Cannot set RGen to a positive value "
+                          "when gen is empty or zero-only.");
+            }
+        }
+
         unsigned oldRGen = 0;
         try
         {
@@ -151,12 +173,18 @@ public:
 
     void setGen(const std::vector<unsigned>& gen)
     {
+        Poco::FastMutex::ScopedLock lock(_convCodeMutex);
+
         if(gen.size() > 4)
         {
             throw Pothos::InvalidArgumentException("Gen must be of size 0-4");
         }
-
-        Poco::FastMutex::ScopedLock lock(_convCodeMutex);
+        else if(isVectorEmptyOrZeros(gen) && (_pConvCode->rgen > 0))
+        {
+            throw Pothos::InvalidArgumentException(
+                      "Cannot set gen to an empty or all-zeros "
+                      "value when RGen is positive.");
+        }
 
         std::vector<unsigned> oldGen;
         try
@@ -176,6 +204,8 @@ public:
 
     void setPuncture(const std::vector<int>& puncture)
     {
+        Poco::FastMutex::ScopedLock lock(_convCodeMutex);
+
         // All puncture values must be positive. TurboFEC expects puncture
         // arrays to be terminated with -1, but we handle that ourselves.
         auto negativePuncIter = std::find_if(
@@ -189,8 +219,6 @@ public:
         {
             throw Pothos::InvalidArgumentException("All puncture values must be >= 0.");
         }
-
-        Poco::FastMutex::ScopedLock lock(_convCodeMutex);
 
         std::vector<int> oldPuncture;
         try
@@ -211,6 +239,13 @@ public:
     void setTerminationType(const std::string& terminationType)
     {
         Poco::FastMutex::ScopedLock lock(_convCodeMutex);
+
+        if(("Tail-biting" == terminationType) && (_pConvCode->rgen > 0))
+        {
+            throw Pothos::InvalidArgumentException(
+                      "Cannot set termination to Tail-biting"
+                      "when RGen is positive.");
+        }
 
         std::string oldTerminationType;
         try

@@ -223,6 +223,35 @@ class LTETurboEncoder: public Pothos::Block
         }
 };
 
+/*
+ * |PothosDoc LTE Turbo Encoder
+ *
+ * |category /FEC/Encoders
+ * |keywords coder
+ * |factory /fec/lte_turbo_encoder(rgen,gen)
+ * |setter setRGen(rgen)
+ * |setter setGen(gen)
+ * |setter setBlockStartID(blockStartID)
+ *
+ * |param rgen[RGen] Recursive generator polynomial
+ * |widget SpinBox(minimum=0,base=8)
+ * |default 0
+ * |preview enable
+ *
+ * |param gen[Gen] Generator polynomial
+ * |widget SpinBox(minimum=0,base=8)
+ * |default 0
+ * |preview enable
+ *
+ * |param blockStartID[Block Start ID]
+ * The label used by the block to determine the beginning of the block to encode.
+ * This label will be placed at the start of the corresponding decoded block on
+ * output port 0. If the given string is empty, the block will encode the entire
+ * input buffer at once.
+ * |widget LineEdit()
+ * |default "START"
+ * |preview disable
+ */
 static Pothos::BlockRegistry registerLTETurboEncoder(
     "/fec/lte_turbo_encoder",
     Pothos::Callable(&LTETurboEncoder::make));

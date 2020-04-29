@@ -389,7 +389,7 @@ private:
  *
  * |param gen[Gen] Generator polynomial (length 0-4)
  * |widget LineEdit()
- * |default [023,033]
+ * |default [0o23,0o33]
  * |preview enable
  *
  * |param puncture[Puncture] Note: all values must be positive.
@@ -397,7 +397,7 @@ private:
  * |default []
  * |preview enable
  *
- * |param terminationType[TerminationType]
+ * |param terminationType[Termination Type]
  * |widget ComboBox(editable=False)
  * |option [Flush] "Flush"
  * |option [Tail-biting] "Tail-biting"
@@ -447,7 +447,7 @@ static Pothos::BlockRegistry registerGenericConvolutionEncoder(
  *
  * |param gen[Gen] Generator polynomial (length 0-4)
  * |widget LineEdit()
- * |default [023,033]
+ * |default [0o23,0o33]
  * |preview enable
  *
  * |param puncture[Puncture] Note: all values must be positive.
@@ -455,7 +455,7 @@ static Pothos::BlockRegistry registerGenericConvolutionEncoder(
  * |default []
  * |preview enable
  *
- * |param terminationType[TerminationType]
+ * |param terminationType[Termination Type]
  * |widget ComboBox(editable=False)
  * |option [Flush] "Flush"
  * |option [Tail-biting] "Tail-biting"

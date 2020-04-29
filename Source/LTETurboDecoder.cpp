@@ -199,6 +199,33 @@ class LTETurboDecoder: public Pothos::Block
         }
 };
 
+/*
+ * |PothosDoc LTE Turbo Decoder
+ *
+ * |category /FEC/Decoders
+ * |keywords coder
+ * |factory /fec/lte_turbo_decoder(numIterations,unpack)
+ * |setter setNumIterations(numIterations)
+ *
+ * |param numIterations[Num Iterations]
+ * |widget SpinBox(minimum=1)
+ * |default 4
+ * |preview enable
+ *
+ * |param unpack[Unpack?]
+ * |widget ToggleSwitch(on="True",off="False")
+ * |default true
+ * |preview enable
+ *
+ * |param blockStartID[Block Start ID]
+ * The label used by the block to determine the beginning of the block to decode.
+ * This label will be placed at the start of the corresponding encoded block.
+ * If the given string is empty, the block will decode the entire
+ * input buffer at once.
+ * |widget LineEdit()
+ * |default "START"
+ * |preview disable
+ */
 static Pothos::BlockRegistry registerLTETurboDecoder(
     "/fec/lte_turbo_decoder",
     Pothos::Callable(&LTETurboDecoder::make));

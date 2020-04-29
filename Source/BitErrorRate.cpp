@@ -111,6 +111,24 @@ class BitErrorRate: public Pothos::Block
         }
 };
 
+/*
+ * |PothosDoc Bit Error Rate
+ *
+ * Takes in two input streams and records the bit error rate (BER), which
+ * is calculated by:
+ *
+ * <p><b>BER = # bits different / # bits recorded</b></p>
+ *
+ * |category /FEC/Analysis
+ * |keywords ber
+ * |factory /fec/bit_error_rate(packed)
+ *
+ * |param packed[Packed?]
+ * When set to true, each individual bit of the inputs is compared. When set to false, checks for
+ * each byte being zero or non-zero.
+ * |widget ToggleSwitch(on="True", off="False")
+ * |default false
+ */
 static Pothos::BlockRegistry registerBER(
     "/fec/bit_error_rate",
     Pothos::Callable(&BitErrorRate::make));

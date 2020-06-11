@@ -11,6 +11,7 @@ communication standards, as well as general encoding/decoding functionality.
 
 * Pothos library (0.7+)
 * TurboFEC: https://github.com/ttsou/turbofec
+* AFF3CT: https://github.com/aff3ct/aff3ct
 
 ## Licensing information
 

@@ -226,7 +226,7 @@ class LTETurboEncoder: public Pothos::Block
 /*
  * |PothosDoc LTE Turbo Encoder
  *
- * |category /FEC/Encoders
+ * |category /FEC/LTE
  * |keywords coder
  * |factory /fec/lte_turbo_encoder(rgen,gen)
  * |setter setRGen(rgen)

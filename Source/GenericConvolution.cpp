@@ -354,7 +354,7 @@ private:
 /*
  * |PothosDoc Generic Convolution Encoder
  *
- * |category /FEC/Encoders
+ * |category /FEC/Convolution
  * |keywords N K gen recursive termination gsm lte
  * |factory /fec/generic_conv_encoder()
  * |setter setN(N)
@@ -412,7 +412,7 @@ static Pothos::BlockRegistry registerGenericConvolutionEncoder(
 /*
  * |PothosDoc Generic Convolution Decoder
  *
- * |category /FEC/Decoders
+ * |category /FEC/Convolution
  * |keywords N K gen recursive termination gsm lte
  * |factory /fec/generic_conv_decoder()
  * |setter setN(N)

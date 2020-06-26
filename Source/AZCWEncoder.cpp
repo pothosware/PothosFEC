@@ -109,8 +109,8 @@ void AZCWEncoder<T>::work()
 /*
  * |PothosDoc AZCW Encoder
  *
- * |category /FEC/Encoders
- * |category Testers
+ * |category /FEC/Misc
+ * |category /Testers
  * |keywords N K
  * |factory /fec/azcw_encoder(dtype,K,N)
  *

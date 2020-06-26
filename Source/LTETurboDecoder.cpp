@@ -202,7 +202,7 @@ class LTETurboDecoder: public Pothos::Block
 /*
  * |PothosDoc LTE Turbo Decoder
  *
- * |category /FEC/Decoders
+ * |category /FEC/LTE
  * |keywords coder
  * |factory /fec/lte_turbo_decoder(numIterations,unpack)
  * |setter setNumIterations(numIterations)

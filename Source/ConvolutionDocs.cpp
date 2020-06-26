@@ -2,7 +2,7 @@
 // Copyright (c) 2020-2020 Nicholas Corgan
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
-// This file was generated on 2020-04-25 09:32:41.933368.
+// This file was generated on 2020-06-26 17:04:44.152085.
 //
 
 /*
@@ -12,7 +12,7 @@
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Encoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_xcch_encoder()
  */
@@ -25,7 +25,7 @@ void gsm_xcch();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Encoders
+ * |category /FEC/GPRS
  * |keywords coder lte
  * |factory /fec/gprs_cs2_encoder()
  */
@@ -38,7 +38,7 @@ void gprs_cs2();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Encoders
+ * |category /FEC/GPRS
  * |keywords coder lte
  * |factory /fec/gprs_cs3_encoder()
  */
@@ -51,7 +51,7 @@ void gprs_cs3();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Encoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_rach_encoder()
  */
@@ -64,7 +64,7 @@ void gsm_rach();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Encoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_sch_encoder()
  */
@@ -77,7 +77,7 @@ void gsm_sch();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Encoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_fr_encoder()
  */
@@ -90,7 +90,7 @@ void gsm_tch_fr();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Encoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_hr_encoder()
  */
@@ -103,7 +103,7 @@ void gsm_tch_hr();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Encoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_afs12_2_encoder()
  */
@@ -116,7 +116,7 @@ void gsm_tch_afs12_2();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Encoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_afs10_2_encoder()
  */
@@ -129,7 +129,7 @@ void gsm_tch_afs10_2();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Encoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_afs7_95_encoder()
  */
@@ -142,7 +142,7 @@ void gsm_tch_afs7_95();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Encoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_afs7_4_encoder()
  */
@@ -155,7 +155,7 @@ void gsm_tch_afs7_4();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Encoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_afs6_7_encoder()
  */
@@ -168,7 +168,7 @@ void gsm_tch_afs6_7();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Encoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_afs5_9_encoder()
  */
@@ -181,7 +181,7 @@ void gsm_tch_afs5_9();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Encoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_ahs7_95_encoder()
  */
@@ -194,7 +194,7 @@ void gsm_tch_ahs7_95();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Encoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_ahs7_4_encoder()
  */
@@ -207,7 +207,7 @@ void gsm_tch_ahs7_4();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Encoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_ahs6_7_encoder()
  */
@@ -220,7 +220,7 @@ void gsm_tch_ahs6_7();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Encoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_ahs5_9_encoder()
  */
@@ -233,7 +233,7 @@ void gsm_tch_ahs5_9();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Encoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_ahs5_15_encoder()
  */
@@ -246,7 +246,7 @@ void gsm_tch_ahs5_15();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Encoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_ahs4_75_encoder()
  */
@@ -259,7 +259,7 @@ void gsm_tch_ahs4_75();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Encoders
+ * |category /FEC/WiMax
  * |keywords coder lte
  * |factory /fec/wimax_fch_encoder()
  */
@@ -272,7 +272,7 @@ void wimax_fch();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Encoders
+ * |category /FEC/LTE
  * |keywords coder lte
  * |factory /fec/lte_pbch_encoder()
  */
@@ -286,7 +286,7 @@ void lte_pbch();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Decoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_xcch_decoder()
  */
@@ -299,7 +299,7 @@ void gsm_xcch();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Decoders
+ * |category /FEC/GPRS
  * |keywords coder lte
  * |factory /fec/gprs_cs2_decoder()
  */
@@ -312,7 +312,7 @@ void gprs_cs2();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Decoders
+ * |category /FEC/GPRS
  * |keywords coder lte
  * |factory /fec/gprs_cs3_decoder()
  */
@@ -325,7 +325,7 @@ void gprs_cs3();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Decoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_rach_decoder()
  */
@@ -338,7 +338,7 @@ void gsm_rach();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Decoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_sch_decoder()
  */
@@ -351,7 +351,7 @@ void gsm_sch();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Decoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_fr_decoder()
  */
@@ -364,7 +364,7 @@ void gsm_tch_fr();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Decoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_hr_decoder()
  */
@@ -377,7 +377,7 @@ void gsm_tch_hr();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Decoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_afs12_2_decoder()
  */
@@ -390,7 +390,7 @@ void gsm_tch_afs12_2();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Decoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_afs10_2_decoder()
  */
@@ -403,7 +403,7 @@ void gsm_tch_afs10_2();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Decoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_afs7_95_decoder()
  */
@@ -416,7 +416,7 @@ void gsm_tch_afs7_95();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Decoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_afs7_4_decoder()
  */
@@ -429,7 +429,7 @@ void gsm_tch_afs7_4();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Decoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_afs6_7_decoder()
  */
@@ -442,7 +442,7 @@ void gsm_tch_afs6_7();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Decoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_afs5_9_decoder()
  */
@@ -455,7 +455,7 @@ void gsm_tch_afs5_9();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Decoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_ahs7_95_decoder()
  */
@@ -468,7 +468,7 @@ void gsm_tch_ahs7_95();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Decoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_ahs7_4_decoder()
  */
@@ -481,7 +481,7 @@ void gsm_tch_ahs7_4();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Decoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_ahs6_7_decoder()
  */
@@ -494,7 +494,7 @@ void gsm_tch_ahs6_7();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Decoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_ahs5_9_decoder()
  */
@@ -507,7 +507,7 @@ void gsm_tch_ahs5_9();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Decoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_ahs5_15_decoder()
  */
@@ -520,7 +520,7 @@ void gsm_tch_ahs5_15();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Decoders
+ * |category /FEC/GSM
  * |keywords coder lte
  * |factory /fec/gsm_tch_ahs4_75_decoder()
  */
@@ -533,7 +533,7 @@ void gsm_tch_ahs4_75();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Decoders
+ * |category /FEC/WiMax
  * |keywords coder lte
  * |factory /fec/wimax_fch_decoder()
  */
@@ -546,7 +546,7 @@ void wimax_fch();
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Decoders
+ * |category /FEC/LTE
  * |keywords coder lte
  * |factory /fec/lte_pbch_decoder()
  */

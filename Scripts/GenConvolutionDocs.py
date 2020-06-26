@@ -48,11 +48,11 @@ EncoderTemplate = """
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Encoders
+ * |category /FEC/{1}
  * |keywords coder lte
- * |factory /fec/{1}_encoder()
+ * |factory /fec/{2}_encoder()
  */
-void {1}();
+void {2}();
 """
 DecoderTemplate = """
 /*
@@ -62,11 +62,11 @@ DecoderTemplate = """
  * The convolution parameters used for this encoding are standard-specific
  * and are read-only.
  *
- * |category /FEC/Decoders
+ * |category /FEC/{1}
  * |keywords coder lte
- * |factory /fec/{1}_decoder()
+ * |factory /fec/{2}_decoder()
  */
-void {1}();
+void {2}();
 """
 
 def convertStandardName(standardName):
@@ -77,8 +77,8 @@ def convertStandardName(standardName):
     return convertedStandardName
 
 def outputDocFile():
-    encoderDocs = "".join([EncoderTemplate.format(standardName, convertStandardName(standardName)) for standardName in StandardNames])
-    decoderDocs = "".join([DecoderTemplate.format(standardName, convertStandardName(standardName)) for standardName in StandardNames])
+    encoderDocs = "".join([EncoderTemplate.format(standardName, standardName.split(" ")[0], convertStandardName(standardName)) for standardName in StandardNames])
+    decoderDocs = "".join([DecoderTemplate.format(standardName, standardName.split(" ")[0], convertStandardName(standardName)) for standardName in StandardNames])
     fileContents = "{0}\n{1}\n{2}".format(Prefix, encoderDocs, decoderDocs)
 
     with open(OutputFile, "w") as f:

@@ -40,6 +40,7 @@ include(PothosUtil)
 POTHOS_MODULE_UTIL(
     TARGET FECBlocks
     SOURCES
+        Source/AZCWEncoder.cpp
         Source/BitErrorRate.cpp
         Source/ConvCodes.c
         Source/Convolution.cpp

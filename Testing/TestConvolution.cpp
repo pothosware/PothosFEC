@@ -42,7 +42,7 @@ static void testCodersAndGetBER(
     // Encode random inputs and introduce some noise.
     //
 
-    auto randomInput = FECTests::getRandomInput(numInputs);
+    auto randomInput = FECTests::getRandomInput(numInputs, true /*asBits*/);
 
     auto feederSource = Pothos::BlockRegistry::make("/blocks/feeder_source", "uint8");
     feederSource.call("feedBuffer", randomInput);

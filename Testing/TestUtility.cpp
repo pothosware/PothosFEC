@@ -83,7 +83,7 @@ static int uint8_to_err(uint8_t *dst, uint8_t *src, int n)
  * Test-facing functions
  */
 
-Pothos::BufferChunk getRandomInput(size_t numElems)
+Pothos::BufferChunk getRandomInput(size_t numElems, bool asBits)
 {
     Pothos::BufferChunk bufferChunk("uint8", numElems);
 
@@ -91,9 +91,12 @@ Pothos::BufferChunk getRandomInput(size_t numElems)
     randomBuf.readFromDevice(
         bufferChunk,
         numElems);
-    for(size_t elem = 0; elem < numElems; ++elem)
+    if(asBits)
     {
-        bufferChunk.as<std::uint8_t*>()[elem] %= 2;
+        for(size_t elem = 0; elem < numElems; ++elem)
+        {
+            bufferChunk.as<std::uint8_t*>()[elem] %= 2;
+        }
     }
 
     return bufferChunk;
@@ -104,9 +107,13 @@ Pothos::BufferChunk getRandomInput(size_t numElems)
 void testLabelsEqual(const Pothos::Label& label0, const Pothos::Label& label1)
 {
     POTHOS_TEST_EQUAL(label0.id, label1.id);
+    POTHOS_TEST_TRUE(label0.data.type() == label1.data.type());
 
-    POTHOS_TEST_EQUAL(bool(label0.data), bool(label1.data));
-    if(label0.data) POTHOS_TEST_EQUAL(0, label0.data.compareTo(label1.data));
+    if(label0.data.type() == typeid(bool))
+    {
+        POTHOS_TEST_EQUAL(bool(label0.data), bool(label1.data));
+        if(label0.data) POTHOS_TEST_EQUAL(0, label0.data.compareTo(label1.data));
+    }
 
     POTHOS_TEST_EQUAL(label0.index, label1.index);
     POTHOS_TEST_EQUAL(label0.width, label1.width);

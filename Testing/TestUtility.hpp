@@ -12,7 +12,7 @@ namespace FECTests
 static constexpr float defaultSNR = 8.0f;
 static constexpr float defaultAmp = 32.0f;
 
-Pothos::BufferChunk getRandomInput(size_t numElems);
+Pothos::BufferChunk getRandomInput(size_t numElems, bool asBits);
 
 // Note: Pothos::Object::operator== checks that the objects' data is the same,
 // not just the value.

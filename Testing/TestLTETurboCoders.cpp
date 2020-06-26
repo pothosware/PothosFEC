@@ -31,9 +31,9 @@ POTHOS_TEST_BLOCK("/fec/tests", test_lte_encoder_output_length)
         collectorSinks.emplace_back(Pothos::BlockRegistry::make("/blocks/collector_sink", "uint8"));
     }
 
-    auto randomInputPlusJunk = getRandomInput(numJunkElems);
-    randomInputPlusJunk.append(getRandomInput(numElems));
-    randomInputPlusJunk.append(getRandomInput(numJunkElems));
+    auto randomInputPlusJunk = getRandomInput(numJunkElems, true /*asBits*/);
+    randomInputPlusJunk.append(getRandomInput(numElems, true /*asBits*/));
+    randomInputPlusJunk.append(getRandomInput(numJunkElems, true /*asBits*/));
 
     feederSource.call("feedBuffer", randomInputPlusJunk);
     feederSource.call("feedLabel", Pothos::Label(blockStartID, numElems, numJunkElems));
@@ -78,9 +78,9 @@ POTHOS_TEST_BLOCK("/fec/tests", test_lte_decoder_output_length)
     for(size_t port = 0; port < 3; ++port)
     {
         feederSources.emplace_back(Pothos::BlockRegistry::make("/blocks/feeder_source", "uint8"));
-        auto randomInputPlusJunk = getRandomInput(numJunkElems);
-        randomInputPlusJunk.append(getRandomInput(numElems));
-        randomInputPlusJunk.append(getRandomInput(numJunkElems));
+        auto randomInputPlusJunk = getRandomInput(numJunkElems, true /*asBits*/);
+        randomInputPlusJunk.append(getRandomInput(numElems, true /*asBits*/));
+        randomInputPlusJunk.append(getRandomInput(numJunkElems, true /*asBits*/));
 
         feederSources.back().call("feedBuffer", randomInputPlusJunk);
         feederSources.back().call("feedLabel", Pothos::Label(blockStartID, numElems, numJunkElems));
@@ -131,7 +131,7 @@ POTHOS_TEST_BLOCK("/fec/tests", test_lte_coder_symmetry)
     constexpr size_t numIterations = 4;
     const std::string blockStartID = "START";
 
-    const auto randomInput = getRandomInput(numElems);
+    const auto randomInput = getRandomInput(numElems, true /*asBits*/);
 
     auto feederSource = Pothos::BlockRegistry::make("/blocks/feeder_source", "uint8");
     feederSource.call("feedBuffer", randomInput);

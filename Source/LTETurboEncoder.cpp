@@ -169,7 +169,7 @@ class LTETurboEncoder: public Pothos::Block
             }
 
             // Output a start block ID so an decoder can operate on the same data.
-            if(!_blockStartID.empty()) outputs[0]->postLabel(_blockStartID, outSizeOrErr, 0);
+            if(!_blockStartID.empty()) outputs[0]->postLabel(_blockStartID, static_cast<size_t>(outSizeOrErr), 0);
         }
 
         void _blockIDWork(size_t maxInputSize)

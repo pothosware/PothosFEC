@@ -15,7 +15,7 @@ constexpr size_t numElems = TURBO_MAX_K;
 POTHOS_TEST_BLOCK("/fec/tests", test_bit_error_rate_no_noise)
 {
     auto feederSource = Pothos::BlockRegistry::make("/blocks/feeder_source", "uint8");
-    feederSource.call("feedBuffer", getRandomInput(numElems));
+    feederSource.call("feedBuffer", getRandomInput(numElems, true /*asBits*/));
 
     auto bitErrorRate = Pothos::BlockRegistry::make("/fec/bit_error_rate", false /*packed*/);
 
@@ -38,7 +38,7 @@ POTHOS_TEST_BLOCK("/fec/tests", test_bit_error_rate_with_noise)
     constexpr size_t numElems = TURBO_MAX_K;
 
     int numBitsChanged = 0;
-    auto randomInput = getRandomInput(numElems);
+    auto randomInput = getRandomInput(numElems, true /*asBits*/);
     auto noisyInput = addNoiseAndGetError(
                           randomInput,
                           defaultSNR,

@@ -17,14 +17,16 @@ find_package(aff3ct REQUIRED)
 ########################################################################
 # Build TurboFEC
 ########################################################################
+set(turbofec_source_dir ${CMAKE_CURRENT_SOURCE_DIR}/turbofec)
+set(turbofec_binary_dir ${CMAKE_CURRENT_BINARY_DIR}/turbofec)
+
 include(ExternalProject)
 ExternalProject_Add(
     prj_turbofec
-    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/turbofec
-    CONFIGURE_COMMAND autoreconf -i && ${CMAKE_CURRENT_SOURCE_DIR}/turbofec/configure --enable-shared=no --enable-static=yes --prefix=${CMAKE_CURRENT_BINARY_DIR}/turbofec
-    PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/turbofec
-    BUILD_COMMAND make
-    BUILD_IN_SOURCE 1)
+    SOURCE_DIR ${turbofec_source_dir}
+    CONFIGURE_COMMAND autoreconf -i ${turbofec_source_dir} && ${turbofec_source_dir}/configure --enable-shared=no --enable-static=yes --prefix=${turbofec_binary_dir}
+    PREFIX ${turbofec_source_dir}
+    BUILD_COMMAND make)
 
 ExternalProject_Get_Property(prj_turbofec install_dir)
 add_library(turbofec STATIC IMPORTED)

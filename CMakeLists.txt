@@ -16,6 +16,18 @@ find_package(Threads REQUIRED)
 find_package(aff3ct REQUIRED)
 
 ########################################################################
+# Build TurboFEC
+########################################################################
+include(ExternalProject)
+ExternalProject_Add(
+    turbofec
+    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/turbofec
+    CONFIGURE_COMMAND autoreconf -i && ${CMAKE_CURRENT_SOURCE_DIR}/turbofec/configure --prefix=${CMAKE_CURRENT_BINARY_DIR}/turbofec
+    PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/turbofec
+    BUILD_COMMAND make
+    BUILD_IN_SOURCE 1)
+
+########################################################################
 # json.hpp header
 ########################################################################
 find_path(JSON_HPP_INCLUDE_DIR NAMES json.hpp PATH_SUFFIXES nlohmann)

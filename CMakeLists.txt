@@ -15,22 +15,28 @@ find_package(Threads REQUIRED)
 find_package(aff3ct REQUIRED)
 
 ########################################################################
-# Build TurboFEC
+# Find or build TurboFEC
 ########################################################################
-set(turbofec_source_dir ${CMAKE_CURRENT_SOURCE_DIR}/turbofec)
-set(turbofec_binary_dir ${CMAKE_CURRENT_BINARY_DIR}/turbofec)
+find_package(TurboFEC)
+if(NOT TURBOFEC_FOUND)
+    message(STATUS "TurboFEC not found. Building in-tree static library.")
 
-include(ExternalProject)
-ExternalProject_Add(
-    prj_turbofec
-    SOURCE_DIR ${turbofec_source_dir}
-    CONFIGURE_COMMAND autoreconf -i ${turbofec_source_dir} && ${turbofec_source_dir}/configure --enable-shared=no --enable-static=yes --prefix=${turbofec_binary_dir}
-    PREFIX ${turbofec_source_dir}
-    BUILD_COMMAND make)
+    set(turbofec_source_dir ${CMAKE_CURRENT_SOURCE_DIR}/turbofec)
+    set(turbofec_binary_dir ${CMAKE_CURRENT_BINARY_DIR}/turbofec)
 
-ExternalProject_Get_Property(prj_turbofec install_dir)
-add_library(turbofec STATIC IMPORTED)
-set_property(TARGET turbofec PROPERTY IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/turbofec/lib/libturbofec.a)
+    include(ExternalProject)
+    ExternalProject_Add(
+        prj_turbofec
+        SOURCE_DIR ${turbofec_source_dir}
+        CONFIGURE_COMMAND autoreconf -i ${turbofec_source_dir} && ${turbofec_source_dir}/configure --enable-shared=no --enable-static=yes --prefix=${turbofec_binary_dir}
+        PREFIX ${turbofec_source_dir}
+        BUILD_COMMAND make)
+
+    ExternalProject_Get_Property(prj_turbofec install_dir)
+
+    set(TURBOFEC_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR}/turbofec/include)
+    set(TURBOFEC_LIBRARIES ${CMAKE_CURRENT_BINARY_DIR}/turbofec/lib/libturbofec.a)
+endif()
 
 ########################################################################
 # json.hpp header
@@ -46,7 +52,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/Source
     ${CMAKE_CURRENT_SOURCE_DIR}/Testing
-    ${CMAKE_CURRENT_BINARY_DIR}/turbofec/include
+    ${TURBOFEC_INCLUDE_DIRS}
     ${JSON_HPP_INCLUDE_DIR})
 
 configure_file(
@@ -76,9 +82,11 @@ POTHOS_MODULE_UTIL(
         Testing/TestModuleInfo.cpp
         Testing/TestUtility.cpp
     LIBRARIES
-        turbofec
+        ${TURBOFEC_LIBRARIES}
         aff3ct::aff3ct-shared-lib
     ENABLE_DOCS ON
     DESTINATION fec
 )
-add_dependencies(FECBlocks prj_turbofec)
+if(NOT TURBOFEC_FOUND)
+    add_dependencies(FECBlocks prj_turbofec)
+endif()

@@ -3,4 +3,9 @@
 
 #pragma once
 
-void throwOnErrCode(int errCode);
+#include <Pothos/Util/ExceptionForErrorCode.hpp>
+
+static inline void throwOnErrCode(int errCode)
+{
+    if(errCode < 0) throw Pothos::Util::ErrnoException<>(errCode);
+}

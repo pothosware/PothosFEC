@@ -51,11 +51,9 @@ POTHOS_MODULE_UTIL(
         Source/Convolution.cpp
         Source/ConvolutionBase.cpp
         Source/ConvolutionDocs.cpp
-        Source/errnoname.c
         Source/GenericConvolution.cpp
         Source/LTETurboDecoder.cpp
         Source/LTETurboEncoder.cpp
-        Source/Utility.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/ModuleInfo.cpp
 
         Testing/TestBitErrorRate.cpp

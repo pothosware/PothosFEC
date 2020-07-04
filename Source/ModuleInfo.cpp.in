@@ -5,14 +5,11 @@
 
 #include <json.hpp>
 
-#include <aff3ct.hpp>
-
 static std::string getTurboFECInfoJSON()
 {
     nlohmann::json topObject;
     auto& fecInfo = topObject["FEC Info"];
     fecInfo["TurboFEC Version"] = "@TURBOFEC_VERSION@";
-    fecInfo["AFF3CT Version"] = aff3ct::tools::version();
 
     return topObject.dump();
 }

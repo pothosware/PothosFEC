@@ -11,8 +11,6 @@ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake)
 ########################################################################
 # Find dependencies
 ########################################################################
-find_package(Threads REQUIRED)
-find_package(aff3ct REQUIRED)
 
 ########################################################################
 # Find or build TurboFEC
@@ -48,7 +46,6 @@ include(PothosUtil)
 POTHOS_MODULE_UTIL(
     TARGET FECBlocks
     SOURCES
-        Source/AZCWEncoder.cpp
         Source/BitErrorRate.cpp
         Source/ConvCodes.c
         Source/Convolution.cpp
@@ -68,7 +65,6 @@ POTHOS_MODULE_UTIL(
         Testing/TestUtility.cpp
     LIBRARIES
         ${TURBOFEC_LIBRARIES}
-        aff3ct::aff3ct-shared-lib
     ENABLE_DOCS ON
     DESTINATION fec
 )

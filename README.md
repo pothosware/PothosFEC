@@ -10,7 +10,6 @@ communication standards, as well as general encoding/decoding functionality.
 ## Dependencies
 
 * Pothos library (0.7+)
-* AFF3CT: https://github.com/aff3ct/aff3ct
 
 ## Licensing information
 

@@ -8,6 +8,11 @@ find_package(Pothos 0.7 CONFIG REQUIRED)
 
 list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake)
 
+if(MSVC)
+    message(STATUS "This component is currently incompatible with MSVC. Exiting...")
+    return()
+endif()
+
 ########################################################################
 # Find dependencies
 ########################################################################

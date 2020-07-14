@@ -61,6 +61,7 @@ POTHOS_MODULE_UTIL(
         Source/LTETurboEncoder.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/ModuleInfo.cpp
 
+        Testing/CoderTests.cpp
         Testing/TestBitErrorRate.cpp
         Testing/TestConvolution.cpp
         Testing/TestLTETurboCoders.cpp

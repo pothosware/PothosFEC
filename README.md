@@ -14,6 +14,10 @@ Currently only supported on UNIX-based systems.
 * TurboFEC (https://github.com/ttsou/turbofec)
   * If not found, it will be built as part of PothosFEC.
 
+## Roadmap
+
+* Liquid FEC blocks: https://github.com/pothosware/PothosFEC/tree/liquid
+
 ## Licensing information
 
 This module is licensed under the GNU General Public License v3. For the

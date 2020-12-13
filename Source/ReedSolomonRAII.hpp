@@ -68,6 +68,36 @@ class ReedSolomonRAII
             return _decodeFcn(_rs, data, erasPos, noEras);
         }
 
+        inline int symSize()
+        {
+            return _symSize;
+        }
+
+        inline int gfPoly()
+        {
+            return _gfPoly;
+        }
+
+        inline int fcr()
+        {
+            return _fcr;
+        }
+
+        inline int prim()
+        {
+            return _prim;
+        }
+
+        inline int nRoots()
+        {
+            return _nroots;
+        }
+
+        inline int pad()
+        {
+            return _pad;
+        }
+
     private:
         int _symSize;
         int _gfPoly;

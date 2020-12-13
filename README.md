@@ -13,10 +13,8 @@ Currently only supported on UNIX-based systems.
 * Pothos library (0.7+)
 * TurboFEC (https://github.com/ttsou/turbofec)
   * If not found, it will be built as part of PothosFEC.
-
-## Roadmap
-
-* Liquid FEC blocks: https://github.com/pothosware/PothosFEC/tree/liquid
+* LibFEC (http://www.ka9q.net/code/fec/)
+  * If not found, it will be built as part of PothosFEC.
 
 ## Licensing information
 

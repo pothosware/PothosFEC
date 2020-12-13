@@ -6,6 +6,8 @@
 
 #include <Pothos/Framework.hpp>
 
+#include <cstring>
+
 //
 // Interface
 //
@@ -245,11 +247,63 @@ void ReedSolomonBase<T>::_resetRSUPtr(
 template <typename T>
 void ReedSolomonEncoder<T>::work()
 {
+    const auto& workInfo = this->workInfo();
+
+    if((workInfo.minInElements < size_t(this->_K)) ||
+       (workInfo.minOutElements < size_t(this->_N))) return;
+
+    auto input = this->input(0);
+    auto output = this->output(0);
+
+    const auto numInputBlocks = input->elements() / this->_K;
+    const auto numOutputBlocks = output->elements() / this->_N;
+    const auto numBlocks = std::min(numInputBlocks, numOutputBlocks);
+
+    const T* buffIn = input->buffer();
+    T* buffOut = output->buffer();
+
+    for(size_t blockIndex = 0;
+        blockIndex < numBlocks;
+        ++blockIndex, buffIn += this->_K, buffOut += this->_N)
+    {
+        // LibFEC functions operate in-place.
+        std::memcpy(buffOut, buffIn, (this->_N * sizeof(T)));
+        this->_rsUPtr->encode(buffOut, &buffOut[this->_K]);
+    }
+
+    input->consume(numBlocks * this->_K);
+    output->produce(numBlocks * this->_N);
 }
 
 template <typename T>
 void ReedSolomonDecoder<T>::work()
 {
+    const auto& workInfo = this->workInfo();
+
+    if((workInfo.minInElements < size_t(this->_N)) ||
+       (workInfo.minOutElements < size_t(this->_K))) return;
+
+    auto input = this->input(0);
+    auto output = this->output(0);
+
+    const auto numInputBlocks = input->elements() / this->_N;
+    const auto numOutputBlocks = output->elements() / this->_K;
+    const auto numBlocks = std::min(numInputBlocks, numOutputBlocks);
+
+    const T* buffIn = input->buffer();
+    T* buffOut = output->buffer();
+
+    for(size_t blockIndex = 0;
+        blockIndex < numBlocks;
+        ++blockIndex, buffIn += this->_N, buffOut += this->_K)
+    {
+        // LibFEC functions operate in-place.
+        std::memcpy(buffOut, buffIn, (this->_K * sizeof(T)));
+        this->_rsUPtr->decode(buffOut, nullptr, 0); // Don't store erasure info
+    }
+
+    input->consume(numBlocks * this->_N);
+    output->produce(numBlocks * this->_K);
 }
 
 //

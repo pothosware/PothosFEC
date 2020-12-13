@@ -62,6 +62,7 @@ POTHOS_MODULE_UTIL(
         Source/GenericConvolution.cpp
         Source/LTETurboDecoder.cpp
         Source/LTETurboEncoder.cpp
+        Source/ReedSolomonCoders.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/ModuleInfo.cpp
 
         Testing/CoderTests.cpp

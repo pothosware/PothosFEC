@@ -8,11 +8,17 @@ extern "C"
 #include "libfec/fec.h"
 }
 
-#include <Pothos/Framework.hpp>
-
-#include <Poco/Mutex.h>
-
+#include <cassert>
 #include <memory>
+
+// Default values (taken from GNU Radio)
+static constexpr int DefaultSymSize = 8;
+static constexpr int DefaultGFPoly = 0x11D;
+static constexpr int DefaultFCR = 0;
+static constexpr int DefaultPrim = 1;
+static constexpr int DefaultPad = 0;
+static constexpr int DefaultN = 255;
+static constexpr int DefaultK = 239;
 
 template <typename T>
 class ReedSolomonRAII
@@ -50,50 +56,52 @@ class ReedSolomonRAII
 
         virtual ~ReedSolomonRAII()
         {
-            _freeFcn(_rs);
+            if(_rs) _freeFcn(_rs);
         }
 
         inline void encode(
             T* data,
-            T* parity)
+            T* parity) const
         {
+            assert(_rs);
             _encodeFcn(_rs, data, parity);
         }
 
         inline int decode(
             T* data,
             int* erasPos,
-            int noEras)
+            int noEras) const
         {
+            assert(_rs);
             return _decodeFcn(_rs, data, erasPos, noEras);
         }
 
-        inline int symSize()
+        inline int symSize() const
         {
             return _symSize;
         }
 
-        inline int gfPoly()
+        inline int gfPoly() const
         {
             return _gfPoly;
         }
 
-        inline int fcr()
+        inline int fcr() const
         {
             return _fcr;
         }
 
-        inline int prim()
+        inline int prim() const
         {
             return _prim;
         }
 
-        inline int nRoots()
+        inline int nRoots() const
         {
             return _nroots;
         }
 
-        inline int pad()
+        inline int pad() const
         {
             return _pad;
         }

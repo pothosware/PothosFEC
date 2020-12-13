@@ -22,8 +22,11 @@ if(NOT TURBOFEC_FOUND)
     include(BuildTurboFEC)
 endif()
 
-set(LIBFEC_INSTALL OFF)
-add_subdirectory(libfec)
+find_package(LibFEC)
+if(NOT LIBFEC_FOUND)
+    message(STATUS "LibFEC not found. Building in-tree static library.")
+    include(BuildLibFEC)
+endif()
 
 ########################################################################
 # json.hpp header
@@ -39,6 +42,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/Source
     ${CMAKE_CURRENT_SOURCE_DIR}/Testing
+    ${LIBFEC_INCLUDE_DIRS}
     ${TURBOFEC_INCLUDE_DIRS}
     ${JSON_HPP_INCLUDE_DIR})
 
@@ -47,7 +51,7 @@ configure_file(
     ${CMAKE_CURRENT_BINARY_DIR}/ModuleInfo.cpp)
 
 set(libraries
-    libfec_static
+    ${LIBFEC_LIBRARIES}
     ${TURBOFEC_LIBRARIES})
 
 include(PothosUtil)

@@ -14,17 +14,16 @@ if(MSVC)
 endif()
 
 ########################################################################
-# Find dependencies
-########################################################################
-
-########################################################################
-# Find or build TurboFEC
+# Build in-tree dependencies
 ########################################################################
 find_package(TurboFEC)
 if(NOT TURBOFEC_FOUND)
     message(STATUS "TurboFEC not found. Building in-tree static library.")
     include(BuildTurboFEC)
 endif()
+
+set(LIBFEC_INSTALL OFF)
+add_subdirectory(libfec)
 
 ########################################################################
 # json.hpp header
@@ -47,6 +46,10 @@ configure_file(
     Source/ModuleInfo.cpp.in
     ${CMAKE_CURRENT_BINARY_DIR}/ModuleInfo.cpp)
 
+set(libraries
+    libfec_static
+    ${TURBOFEC_LIBRARIES})
+
 include(PothosUtil)
 POTHOS_MODULE_UTIL(
     TARGET FECBlocks
@@ -67,8 +70,7 @@ POTHOS_MODULE_UTIL(
         Testing/TestLTETurboCoders.cpp
         Testing/TestModuleInfo.cpp
         Testing/TestUtility.cpp
-    LIBRARIES
-        ${TURBOFEC_LIBRARIES}
+    LIBRARIES ${libraries}
     ENABLE_DOCS ON
     DESTINATION fec
 )

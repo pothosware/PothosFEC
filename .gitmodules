@@ -1,3 +1,6 @@
 [submodule "turbofec"]
 	path = turbofec
 	url = https://github.com/ttsou/turbofec
+[submodule "libfec"]
+	path = libfec
+	url = https://github.com/ncorgan/ka9q-fec

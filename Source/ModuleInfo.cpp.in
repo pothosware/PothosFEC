@@ -5,10 +5,15 @@
 
 #include <json.hpp>
 
+// For some reason, AFF3CT sets the aff3ct directory itself
+// as the include directory.
+#include <Tools/version.h>
+
 static std::string getTurboFECInfoJSON()
 {
     nlohmann::json topObject;
     auto& fecInfo = topObject["FEC Info"];
+    fecInfo["AFF3CT Version"] = aff3ct::tools::version();
     fecInfo["TurboFEC Version"] = "@TURBOFEC_VERSION@";
 
     return topObject.dump();

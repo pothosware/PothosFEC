@@ -20,6 +20,11 @@ find_package(Threads)
 find_package(aff3ct 2.3.5 EXACT REQUIRED)
 
 ########################################################################
+# Build AFF3CT dynamic dispatcher
+########################################################################
+add_subdirectory(AFF3CTDynamic)
+
+########################################################################
 # Find or build TurboFEC
 ########################################################################
 find_package(TurboFEC)
@@ -90,6 +95,7 @@ POTHOS_MODULE_UTIL(
         Testing/TestUtility.cpp
     LIBRARIES
         ${TURBOFEC_LIBRARIES}
+        AFF3CTDynamic
         aff3ct::aff3ct-shared-lib
     ENABLE_DOCS ON
     DESTINATION fec

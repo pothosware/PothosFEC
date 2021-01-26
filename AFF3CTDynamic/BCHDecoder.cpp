@@ -14,7 +14,7 @@
 
 using namespace aff3ct;
 using namespace aff3ct::module;
-using namespace POTHOS_SIMD_NAMESPACE;
+using namespace AFF3CTDynamic::POTHOS_SIMD_NAMESPACE;
 
 template <typename B, typename R>
 BCHDecoder<B,R>
@@ -361,8 +361,8 @@ void BCHDecoder<B,R>
 
 // ==================================================================================== explicit template instantiation
 #include "Tools/types.h"
-template class POTHOS_SIMD_NAMESPACE::BCHDecoder<B_8,Q_8>;
-template class POTHOS_SIMD_NAMESPACE::BCHDecoder<B_16,Q_16>;
-template class POTHOS_SIMD_NAMESPACE::BCHDecoder<B_32,Q_32>;
-template class POTHOS_SIMD_NAMESPACE::BCHDecoder<B_64,Q_64>;
+template class AFF3CTDynamic::POTHOS_SIMD_NAMESPACE::BCHDecoder<B_8,Q_8>;
+template class AFF3CTDynamic::POTHOS_SIMD_NAMESPACE::BCHDecoder<B_16,Q_16>;
+template class AFF3CTDynamic::POTHOS_SIMD_NAMESPACE::BCHDecoder<B_32,Q_32>;
+template class AFF3CTDynamic::POTHOS_SIMD_NAMESPACE::BCHDecoder<B_64,Q_64>;
 // ==================================================================================== explicit template instantiation

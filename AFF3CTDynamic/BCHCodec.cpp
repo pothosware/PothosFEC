@@ -11,12 +11,12 @@
 
 using namespace aff3ct;
 using namespace aff3ct::module;
-using namespace POTHOS_SIMD_NAMESPACE;
+using namespace AFF3CTDynamic::POTHOS_SIMD_NAMESPACE;
 
 template <typename B, typename Q>
 BCHCodec<B,Q>
 ::BCHCodec(const factory::Encoder_BCH::parameters &enc_params,
-            const BCHDecoderFactory::parameters &dec_params)
+           const factory::Decoder_BCH::parameters &dec_params)
 : Codec          <B,Q>(enc_params.K, enc_params.N_cw, enc_params.N_cw, enc_params.tail_length, enc_params.n_frames),
   Codec_SIHO_HIHO<B,Q>(enc_params.K, enc_params.N_cw, enc_params.N_cw, enc_params.tail_length, enc_params.n_frames),
   GF_poly(tools::next_power_of_2(dec_params.N_cw) -1, dec_params.t)
@@ -76,8 +76,8 @@ BCHCodec<B,Q>
 
 // ==================================================================================== explicit template instantiation
 #include "Tools/types.h"
-template class POTHOS_SIMD_NAMESPACE::BCHCodec<B_8,Q_8>;
-template class POTHOS_SIMD_NAMESPACE::BCHCodec<B_16,Q_16>;
-template class POTHOS_SIMD_NAMESPACE::BCHCodec<B_32,Q_32>;
-template class POTHOS_SIMD_NAMESPACE::BCHCodec<B_64,Q_64>;
+template class AFF3CTDynamic::POTHOS_SIMD_NAMESPACE::BCHCodec<B_8,Q_8>;
+template class AFF3CTDynamic::POTHOS_SIMD_NAMESPACE::BCHCodec<B_16,Q_16>;
+template class AFF3CTDynamic::POTHOS_SIMD_NAMESPACE::BCHCodec<B_32,Q_32>;
+template class AFF3CTDynamic::POTHOS_SIMD_NAMESPACE::BCHCodec<B_64,Q_64>;
 // ==================================================================================== explicit template instantiation

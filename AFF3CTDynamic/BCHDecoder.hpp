@@ -6,6 +6,8 @@
 #include "Tools/Code/BCH/BCH_polynomial_generator.hpp"
 #include "Module/Decoder/BCH/Decoder_BCH.hpp"
 
+namespace AFF3CTDynamic
+{
 namespace POTHOS_SIMD_NAMESPACE
 {
 template <typename B = int, typename R = float>
@@ -43,4 +45,5 @@ protected:
 	virtual void _decode_siho   (const R *Y_N, B *V_K, const int frame_id);
 	virtual void _decode_siho_cw(const R *Y_N, B *V_N, const int frame_id);
 };
+}
 }

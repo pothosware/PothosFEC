@@ -5,8 +5,7 @@ set(SourcesIn
     BCHDecoder.cpp
     BCHDecoderFactory.cpp
     EntryPoints.cpp
-    LDPCEncoderFromQC.cpp
-    LDPCMatrixHandler.cpp)
+    LDPCEncoderFromQC.cpp)
 
 PothosGenerateSIMDSources(
     Sources

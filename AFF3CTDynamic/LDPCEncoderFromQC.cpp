@@ -4,9 +4,9 @@
 #include <algorithm>
 
 #include "Tools/Exception/exception.hpp"
+#include "Tools/Code/LDPC/Matrix_handler/LDPC_matrix_handler.hpp"
 
 #include "LDPCEncoderFromQC.hpp"
-#include "LDPCMatrixHandler.hpp"
 
 using namespace aff3ct;
 using namespace aff3ct::module;
@@ -16,7 +16,7 @@ template <typename B>
 LDPCEncoderFromQC<B>
 ::LDPCEncoderFromQC(const int K, const int N, const tools::Sparse_matrix &_H, const int n_frames)
 : Encoder_LDPC<B>(K, N, n_frames),
-  invH2(LDPCMatrixHandler::LU_decomposition(_H))
+  invH2(aff3ct::tools::LDPC_matrix_handler::LU_decomposition(_H))
 {
 	const std::string name = "LDPCEncoderFromQC";
 	this->set_name(name);

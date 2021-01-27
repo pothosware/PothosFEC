@@ -55,23 +55,6 @@ configure_file(
     Source/ModuleInfo.cpp.in
     ${CMAKE_CURRENT_BINARY_DIR}/ModuleInfo.cpp)
 
-# Some of our blocks use templated AFF3CT classes that use SIMD
-# code for optimization, so we'll use Pothos's dynamic SIMD
-# dispatcher to get the best code we can.
-#include(PothosConfigSIMD OPTIONAL RESULT_VARIABLE SIMD_SUPPORTED)
-#if(SIMD_SUPPORTED)
-#    set(SIMDSourcesIn
-#        Source/SIMD/AFF3CT.cpp
-#        Source/SIMD/AFF3CT_LDPCDecoderFactory.cpp
-#        Source/SIMD/AFF3CT_LDPCMatrixHandler.cpp)
-#
-#    PothosGenerateSIMDSources(
-#        SIMDSources
-#        Source/SIMD/AFF3CT.json
-#        ${SIMDSourcesIn})
-#    add_definitions(-DPOTHOS_SIMD)
-#endif()
-
 include(PothosUtil)
 POTHOS_MODULE_UTIL(
     TARGET FECBlocks
@@ -100,9 +83,6 @@ POTHOS_MODULE_UTIL(
     ENABLE_DOCS ON
     DESTINATION fec
 )
-if(SIMD_SUPPORTED)
-    add_dependencies(FECBlocks AFF3CT_SIMDDispatcher)
-endif()
 if(NOT TURBOFEC_FOUND)
     add_dependencies(FECBlocks prj_turbofec)
 endif()

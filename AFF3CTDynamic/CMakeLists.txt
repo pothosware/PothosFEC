@@ -4,12 +4,12 @@ set(SourcesIn
     BCHCodec.cpp
     BCHDecoder.cpp
     BCHDecoderFactory.cpp
-    EntryPoints.cpp
     LDPCCodec.cpp
     LDPCDecoderBPHorizontalLayeredONMSInter.cpp
     LDPCDecoderFactory.cpp
     LDPCEncoderFactory.cpp
-    LDPCEncoderFromQC.cpp)
+    LDPCEncoderFromQC.cpp
+    SIMDEntryPoints.cpp)
 
 PothosGenerateSIMDSources(
     Sources

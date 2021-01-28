@@ -13,7 +13,14 @@
             "name": "makeLDPCCodec",
             "returnType": "std::unique_ptr<aff3ct::module::Codec_SISO_SIHO<B,Q>>",
             "paramTypes": ["B", "Q"],
-            "params": ["const aff3ct::factory::Encoder_LDPC::parameters&", "const aff3ct::factory::Decoder_LDPC::parameters&, aff3ct::factory::Puncturer_LDPC::parameters*"],
+            "params": ["const aff3ct::factory::Encoder_LDPC::parameters&", "const aff3ct::factory::Decoder_LDPC::parameters&", "aff3ct::factory::Puncturer_LDPC::parameters*"],
+            "addedIncludes": ["aff3ct.hpp", "memory"]
+        },
+        {
+            "name": "makePolarCodec",
+            "returnType": "std::unique_ptr<aff3ct::module::Codec_polar<B,Q>>",
+            "paramTypes": ["B", "Q"],
+            "params": ["const aff3ct::factory::Frozenbits_generator::parameters&", "const aff3ct::factory::Encoder_polar::parameters&", "const aff3ct::factory::Decoder_polar::parameters&, const aff3ct::factory::Puncturer_polar::parameters*", "aff3ct::module::CRC<B>*"],
             "addedIncludes": ["aff3ct.hpp", "memory"]
         }
     ]

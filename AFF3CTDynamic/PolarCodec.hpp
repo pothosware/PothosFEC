@@ -15,7 +15,7 @@ template <typename B = int, typename Q = float>
 class PolarCodec: public aff3ct::module::Codec_polar<B,Q>
 {
 public:
-	PolarCodec(const aff3ct::factory::Frozenbits_generator::parameters &fb_par,
+    PolarCodec(const aff3ct::factory::Frozenbits_generator::parameters &fb_par,
 	           const aff3ct::factory::Encoder_polar       ::parameters &enc_par,
 	           const aff3ct::factory::Decoder_polar       ::parameters &dec_par,
 	           const aff3ct::factory::Puncturer_polar     ::parameters *pct_par = nullptr,

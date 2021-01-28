@@ -31,6 +31,19 @@ std::unique_ptr<aff3ct::module::Codec_SISO_SIHO<B,Q>> makeLDPCCodec(
     return simdMaker(encParams, decParams, pctParams);
 }
 
+template <typename B, typename Q>
+std::unique_ptr<aff3ct::module::Codec_polar<B,Q>> makePolarCodec(
+    const aff3ct::factory::Frozenbits_generator::parameters &frozenBitsParams,
+    const aff3ct::factory::Encoder_polar       ::parameters &encoderParams,
+    const aff3ct::factory::Decoder_polar       ::parameters &decoderParams,
+    const aff3ct::factory::Puncturer_polar     ::parameters *puncturerParams,
+    aff3ct::module::CRC<B>* crc)
+{
+    static const auto simdMaker = AFF3CTDynamic::makePolarCodecDispatch<B,Q>();
+
+    return simdMaker(frozenBitsParams, encoderParams, decoderParams, puncturerParams, crc);
+}
+
 #else
 
 template <typename B, typename Q>
@@ -50,6 +63,17 @@ std::unique_ptr<aff3ct::module::Codec_SISO_SIHO<B,Q>> makeLDPCCodec(
     return std::unique_ptr<aff3ct::module::Codec_SISO_SIHO<B,Q>>(new aff3ct::module::Codec_LDPC<B,Q>(encParams, decParams, pctParams));
 }
 
+template <typename B, typename Q>
+std::unique_ptr<aff3ct::module::Codec_polar<B,Q>> makePolarCodec(
+    const aff3ct::factory::Frozenbits_generator::parameters &frozenBitsParams,
+    const aff3ct::factory::Encoder_polar       ::parameters &encoderParams,
+    const aff3ct::factory::Decoder_polar       ::parameters &decoderParams,
+    const aff3ct::factory::Puncturer_polar     ::parameters *puncturerParams,
+    aff3ct::module::CRC<B>* crc)
+{
+    return std::unique_ptr<aff3ct::module::Codec_polar<B,Q>>(new aff3ct::module::Codec_polar<B,Q>(frozenBitsParams, encoderParams, decoderParams, puncturerParams, crc));
+}
+
 #endif
 
 #define SPECIALIZE_TMPLS(T1,T2) \
@@ -57,12 +81,20 @@ std::unique_ptr<aff3ct::module::Codec_SISO_SIHO<B,Q>> makeLDPCCodec(
     std::unique_ptr<aff3ct::module::Codec_SIHO_HIHO<T1,T2>> makeBCHCodec( \
         const aff3ct::factory::Encoder_BCH::parameters&, \
         const aff3ct::factory::Decoder_BCH::parameters&); \
-    template <typename B, typename Q> \
+    template \
     std::unique_ptr<aff3ct::module::Codec_SISO_SIHO<T1,T2>> makeLDPCCodec( \
         const aff3ct::factory::Encoder_LDPC::parameters&, \
         const aff3ct::factory::Decoder_LDPC::parameters&, \
-        aff3ct::factory::Puncturer_LDPC::parameters*);
+        aff3ct::factory::Puncturer_LDPC::parameters*); \
+    template \
+    std::unique_ptr<aff3ct::module::Codec_polar<T1,T2>> makePolarCodec( \
+        const aff3ct::factory::Frozenbits_generator::parameters&, \
+        const aff3ct::factory::Encoder_polar       ::parameters&, \
+        const aff3ct::factory::Decoder_polar       ::parameters&, \
+        const aff3ct::factory::Puncturer_polar     ::parameters*, \
+        aff3ct::module::CRC<T1>*);
 
+SPECIALIZE_TMPLS(B_8,Q_8)
 SPECIALIZE_TMPLS(B_16,Q_16)
 SPECIALIZE_TMPLS(B_32,Q_32)
 SPECIALIZE_TMPLS(B_64,Q_64)

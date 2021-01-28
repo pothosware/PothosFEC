@@ -70,6 +70,8 @@ POTHOS_MODULE_UTIL(
         ${CMAKE_CURRENT_BINARY_DIR}/ModuleInfo.cpp
         ${SIMDSources}
 
+        Source/AFF3CT/CoderBase.cpp
+
         Testing/CoderTests.cpp
         Testing/TestBitErrorRate.cpp
         Testing/TestConvolution.cpp

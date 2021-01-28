@@ -15,6 +15,9 @@ if(SIMD_SUPPORTED)
         PolarCodec.cpp
         PolarDecoderFactory.cpp
         PolarDecoderGenFactory.cpp
+        RACodec.cpp
+        RADecoder.cpp
+        RADecoderFactory.cpp
         SIMDEntryPoints.cpp)
 
     PothosGenerateSIMDSources(

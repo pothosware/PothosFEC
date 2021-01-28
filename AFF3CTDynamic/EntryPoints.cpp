@@ -44,6 +44,17 @@ std::unique_ptr<aff3ct::module::Codec_polar<B,Q>> makePolarCodec(
     return simdMaker(frozenBitsParams, encoderParams, decoderParams, puncturerParams, crc);
 }
 
+template <typename B, typename Q>
+std::unique_ptr<aff3ct::module::Codec_SIHO<B,Q>> makeRACodec(
+    const aff3ct::factory::Encoder_RA ::parameters &encParams,
+    const aff3ct::factory::Decoder_RA ::parameters &decParams,
+    const aff3ct::factory::Interleaver::parameters &itlParams)
+{
+    static const auto simdMaker = AFF3CTDynamic::makeRACodecDispatch<B,Q>();
+
+    return simdMaker(encParams, decParams, itlParams);
+}
+
 #else
 
 template <typename B, typename Q>
@@ -72,6 +83,15 @@ std::unique_ptr<aff3ct::module::Codec_polar<B,Q>> makePolarCodec(
     aff3ct::module::CRC<B>* crc)
 {
     return std::unique_ptr<aff3ct::module::Codec_polar<B,Q>>(new aff3ct::module::Codec_polar<B,Q>(frozenBitsParams, encoderParams, decoderParams, puncturerParams, crc));
+}
+
+template <typename B, typename Q>
+std::unique_ptr<aff3ct::module::Codec_SIHO<B,Q>> makeRACodec(
+    const aff3ct::factory::Encoder_RA ::parameters &encParams,
+    const aff3ct::factory::Decoder_RA ::parameters &decParams,
+    const aff3ct::factory::Interleaver::parameters &itlParams)
+{
+    return std::unique_ptr<aff3ct::module::Codec_RA<B,Q>>(new aff3ct::module::Codec_RA<B,Q>(encParams, decParams, itlParams));
 }
 
 #endif

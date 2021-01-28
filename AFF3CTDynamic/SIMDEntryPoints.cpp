@@ -4,6 +4,7 @@
 #include "BCHCodec.hpp"
 #include "LDPCCodec.hpp"
 #include "PolarCodec.hpp"
+#include "RACodec.hpp"
 
 #include <Tools/types.h>
 
@@ -37,6 +38,15 @@ std::unique_ptr<aff3ct::module::Codec_polar<B,Q>> makePolarCodec(
     return std::unique_ptr<aff3ct::module::Codec_polar<B,Q>>(new PolarCodec<B,Q>(frozenBitsParams, encoderParams, decoderParams, puncturerParams, crc));
 }
 
+template <typename B, typename Q>
+std::unique_ptr<aff3ct::module::Codec_SIHO<B,Q>> makeRACodec(
+    const aff3ct::factory::Encoder_RA ::parameters &encParams,
+    const aff3ct::factory::Decoder_RA ::parameters &decParams,
+    const aff3ct::factory::Interleaver::parameters &itlParams)
+{
+    return std::unique_ptr<aff3ct::module::Codec_SIHO<B,Q>>(new RACodec<B,Q>(encParams, decParams, itlParams));
+}
+
 #define SPECIALIZE_TMPLS(T1,T2) \
     template \
     std::unique_ptr<aff3ct::module::Codec_SIHO_HIHO<T1,T2>> makeBCHCodec( \
@@ -53,7 +63,12 @@ std::unique_ptr<aff3ct::module::Codec_polar<B,Q>> makePolarCodec(
         const aff3ct::factory::Encoder_polar       ::parameters&, \
         const aff3ct::factory::Decoder_polar       ::parameters&, \
         const aff3ct::factory::Puncturer_polar     ::parameters*, \
-        aff3ct::module::CRC<T1>*);
+        aff3ct::module::CRC<T1>*); \
+    template \
+    std::unique_ptr<aff3ct::module::Codec_SIHO<T1,T2>> makeRACodec( \
+        const aff3ct::factory::Encoder_RA::parameters&, \
+        const aff3ct::factory::Decoder_RA::parameters&, \
+        const aff3ct::factory::Interleaver::parameters&);
 
 SPECIALIZE_TMPLS(B_8,Q_8)
 SPECIALIZE_TMPLS(B_16,Q_16)

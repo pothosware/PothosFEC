@@ -12,6 +12,9 @@ if(SIMD_SUPPORTED)
         LDPCDecoderFactory.cpp
         LDPCEncoderFactory.cpp
         LDPCEncoderFromQC.cpp
+        PolarCodec.cpp
+        PolarDecoderFactory.cpp
+        PolarDecoderGenFactory.cpp
         SIMDEntryPoints.cpp)
 
     PothosGenerateSIMDSources(

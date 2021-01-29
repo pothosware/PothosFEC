@@ -53,21 +53,25 @@ void AFF3CTCoderBase<B,Q>::work()
 template <typename B, typename Q>
 void AFF3CTCoderBase<B,Q>::_workEncoder()
 {
+    if(!_encoderSPtr) throw Pothos::AssertionViolationException("Null encoder shared_ptr");
 }
 
 template <typename B, typename Q>
 void AFF3CTCoderBase<B,Q>::_workDecoderSISO()
 {
+    if(!_encoderSPtr) throw Pothos::AssertionViolationException("Null decoder SISO shared_ptr");
 }
 
 template <typename B, typename Q>
 void AFF3CTCoderBase<B,Q>::_workDecoderSIHO()
 {
+    if(!_encoderSPtr) throw Pothos::AssertionViolationException("Null decoder SIHO shared_ptr");
 }
 
 template <typename B, typename Q>
 void AFF3CTCoderBase<B,Q>::_workDecoderHIHO()
 {
+    if(!_encoderSPtr) throw Pothos::AssertionViolationException("Null decoder HIHO shared_ptr");
 }
 
 template class AFF3CTCoderBase<B_8,Q_8>;

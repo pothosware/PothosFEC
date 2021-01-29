@@ -1,5 +1,6 @@
 set(Sources EntryPoints.cpp)
 
+find_package(Pothos 0.7 CONFIG REQUIRED)
 include(PothosConfigSIMD OPTIONAL RESULT_VARIABLE SIMD_SUPPORTED)
 
 if(SIMD_SUPPORTED)
@@ -28,13 +29,16 @@ if(SIMD_SUPPORTED)
 
     include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_CURRENT_BINARY_DIR})
+        ${CMAKE_CURRENT_BINARY_DIR}
+        ${Pothos_INCLUDE_DIRS})
 
     add_definitions(-DAFF3CT_SIMD_SUPPORTED)
 endif()
 
 add_library(AFF3CTDynamic STATIC ${Sources})
-target_link_libraries(AFF3CTDynamic aff3ct::aff3ct-shared-lib)
+target_link_libraries(AFF3CTDynamic
+    ${Pothos_LIBRARIES}
+    aff3ct::aff3ct-shared-lib)
 set_property(TARGET AFF3CTDynamic PROPERTY POSITION_INDEPENDENT_CODE TRUE)
 
 if(SIMD_SUPPORTED)

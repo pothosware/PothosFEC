@@ -3,12 +3,13 @@
 
 #include "EntryPoints.hpp"
 
+#ifdef AFF3CT_SIMD_SUPPORTED
+#include "AFF3CTDynamic_SIMD.hpp"
+#endif
+
 namespace AFF3CTDynamic
 {
-
 #ifdef AFF3CT_SIMD_SUPPORTED
-
-#include "AFF3CTDynamic_SIMD.hpp"
 
 template <typename B, typename Q>
 std::unique_ptr<aff3ct::module::Codec_SIHO_HIHO<B,Q>> makeBCHCodec(

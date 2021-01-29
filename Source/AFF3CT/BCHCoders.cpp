@@ -3,32 +3,37 @@
 
 #include "AFF3CTDynamic/EntryPoints.hpp"
 #include "CoderBase.hpp"
+#include "TypeTraits.hpp"
 #include "Utility.hpp"
 
+#include <Pothos/Exception.hpp>
 #include <Pothos/Framework.hpp>
+
+#include <cassert>
+#include <string>
 
 //
 // Base class
 //
 
 template <typename B, typename Q>
-class AFF3CTBCHCoderBase: public AFF3CTCoderBase<B,Q>
+class BCHCoder
 {
 public:
-    AFF3CTBCHCoderBase(CoderType coderType): AFF3CTCoderBase<B,Q>(coderType)
+    BCHCoder()
     {
-        // TODO: set default parameter fields
+        // TODO: override default parameters
     }
 
-    virtual ~AFF3CTBCHCoderBase() = default;
+    virtual ~BCHCoder() = default;
 
 protected:
-    aff3ct::factory::Encoder_BCH::parameters _encParams;
-    aff3ct::factory::Decoder_BCH::parameters _decParams;
+    aff3ct::factory::Encoder_BCH::parameters _encoderParams;
+    aff3ct::factory::Decoder_BCH::parameters _decoderParams;
 
-    void _resetCodec() override
+    void _resetCodec(CodecUPtr<B,Q>& rCodecUPtr)
     {
-        this->_codecUPtr = AFF3CTDynamic::makeBCHCodec<B,Q>(_encParams, _decParams);
+        rCodecUPtr = AFF3CTDynamic::makeBCHCodec<B,Q>(_encoderParams, _decoderParams);
     }
 };
 
@@ -37,20 +42,23 @@ protected:
 //
 
 template <typename B, typename Q>
-class AFF3CTBCHEncoder: public AFF3CTBCHCoderBase<B,Q>
+class BCHEncoder: public AFF3CTEncoder<B,Q>, private BCHCoder<B,Q>
 {
 public:
-    AFF3CTBCHEncoder(): AFF3CTBCHCoderBase<B,Q>(CoderType::ENCODER)
-    {}
+    BCHEncoder(): AFF3CTEncoder<B,Q>(), BCHCoder<B,Q>()
+    {
+    }
 
-    virtual ~AFF3CTBCHEncoder() = default;
+    ~BCHEncoder() = default;
 
 private:
     void _resetCodec() override
     {
-        AFF3CTBCHCoderBase<B,Q>::_resetCodec();
+        BCHCoder<B,Q>::_resetCodec(this->_codecUPtr);
+        assert(this->_codecUPtr);
 
-        this->_encoderSPtr = this->_codecUPtr->get_encoder();
+        this->_encoderPtr = this->_codecUPtr->get_encoder().get();
+        assert(this->_encoderPtr);
     }
 };
 
@@ -59,15 +67,27 @@ private:
 //
 
 template <typename B, typename Q>
-class AFF3CTBCHDecoderSIHO: public AFF3CTBCHCoderBase<B,Q>
+class BCHDecoderSIHO: public AFF3CTDecoderSIHO<B,Q>, private BCHCoder<B,Q>
 {
 public:
-    AFF3CTBCHDecoderSIHO(): AFF3CTBCHCoderBase<B,Q>(CoderType::DECODER_SIHO)
-    {}
+    BCHDecoderSIHO(): AFF3CTDecoderSIHO<B,Q>(), BCHCoder<B,Q>()
+    {
+        // TODO: setter for optional field
+    }
 
-    virtual ~AFF3CTBCHDecoderSIHO() = default;
+    ~BCHDecoderSIHO() = default;
 
 private:
+    void _resetCodec() override
+    {
+        BCHCoder<B,Q>::_resetCodec(this->_codecUPtr);
+        assert(this->_codecUPtr);
+
+        this->_decoderSIHOSPtr = safeDynamicCast<
+                                     aff3ct::module::Codec<B,Q>,
+                                     aff3ct::module::Codec_SIHO<B,Q>
+                                 >(this->_codecUPtr.get())->get_decoder_siho();
+    }
 };
 
 //
@@ -75,95 +95,64 @@ private:
 //
 
 template <typename B, typename Q>
-class AFF3CTBCHDecoderHIHO: public AFF3CTBCHCoderBase<B,Q>
+class BCHDecoderHIHO: public AFF3CTDecoderHIHO<B,Q>, private BCHCoder<B,Q>
 {
 public:
-    AFF3CTBCHDecoderHIHO(): AFF3CTBCHCoderBase<B,Q>(CoderType::DECODER_HIHO)
-    {}
+    BCHDecoderHIHO(): AFF3CTDecoderHIHO<B,Q>(), BCHCoder<B,Q>()
+    {
+        // TODO: setter for optional field
+    }
 
-    virtual ~AFF3CTBCHDecoderHIHO() = default;
+    ~BCHDecoderHIHO() = default;
 
 private:
-    aff3ct::module::Decoder_HIHO<Q>* getDecoderHIHO() const override;
+    void _resetCodec() override
+    {
+        BCHCoder<B,Q>::_resetCodec(this->_codecUPtr);
+        assert(this->_codecUPtr);
+
+        this->_decoderHIHOSPtr = safeDynamicCast<
+                                     aff3ct::module::Codec<B,Q>,
+                                     aff3ct::module::Codec_HIHO<B,Q>
+                                 >(this->_codecUPtr.get())->get_decoder_hiho();
+    }
 };
 
 //
 // Registration
 //
 
-//
-// Template specializations
-//
-
-template class AFF3CTBCHCoderBase<B_8,Q_8>;
-template class AFF3CTBCHCoderBase<B_16,Q_16>;
-template class AFF3CTBCHCoderBase<B_32,Q_32>;
-template class AFF3CTBCHCoderBase<B_64,Q_64>;
-
-/*
-template <typename B, typename Q>
-AFF3CTCoderBase<B,Q>::AFF3CTCoderBase(CoderType coderType):
-    _coderType(coderType),
-    _codecUPtr(nullptr)
+static Pothos::Block* makeBCHEncoderBlock(const Pothos::DType& dtype)
 {
-    static const Pothos::DType dtype(typeid(B));
+#define IfTypeThenEncoder(T) \
+    if(doesDTypeMatch<T>(dtype)) return new BCHEncoder<B, AFF3CTTypeTraits<B>::Q>();
 
-    this->setupInput(0, dtype);
-    this->setupOutput(0, dtype);
+    IfTypeThenEncoder(B_8)
+    IfTypeThenEncoder(B_16)
+    IfTypeThenEncoder(B_32)
+    IfTypeThenEncoder(B_64)
+
+    throw Pothos::InvalidArgumentException("BCHEncoder: invalid type "+dtype.toString());
 }
 
-template <typename B, typename Q>
-AFF3CTCoderBase<B,Q>::~AFF3CTCoderBase()
+static Pothos::Block* makeBCHDecoderBlock(const Pothos::DType& dtype, const std::string& mode)
 {
+#define IfTypeThenDecoder(T) \
+    if(doesDTypeMatch<T>(dtype) && (mode == "SIHO")) return new BCHDecoderSIHO<B, AFF3CTTypeTraits<B>::Q>(); \
+    if(doesDTypeMatch<T>(dtype) && (mode == "HIHO")) return new BCHDecoderHIHO<B, AFF3CTTypeTraits<B>::Q>(); \
+
+    IfTypeThenDecoder(B_8)
+    IfTypeThenDecoder(B_16)
+    IfTypeThenDecoder(B_32)
+    IfTypeThenDecoder(B_64)
+
+    throw Pothos::InvalidArgumentException("BCHDecoder: invalid type "+dtype.toString() + ", mode "+mode);
 }
 
-template <typename B, typename Q>
-void AFF3CTCoderBase<B,Q>::work()
-{
-    const auto elems = this->workInfo().minElements;
-    if(0 == elems) return;
+static Pothos::BlockRegistry registerBCHEncoder(
+    "/fec/bch_encoder",
+    &makeBCHEncoderBlock);
 
-    switch(_coderType)
-    {
-        case CoderType::ENCODER:
-            this->_workEncoder();
-            break;
-
-        case CoderType::DECODER_SISO:
-            this->_workDecoderSISO();
-            break;
-
-        case CoderType::DECODER_SIHO:
-            this->_workDecoderSIHO();
-            break;
-
-        case CoderType::DECODER_HIHO:
-            this->_workDecoderHIHO();
-            break;
-
-        default:
-            throw Pothos::AssertionViolationException("Invalid internal coder type enum: "+std::to_string(int(_coderType)));
-    }
-}
-
-template <typename B, typename Q>
-void AFF3CTCoderBase<B,Q>::_workEncoder()
-{
-}
-
-template <typename B, typename Q>
-void AFF3CTCoderBase<B,Q>::_workDecoderSISO()
-{
-}
-
-template <typename B, typename Q>
-void AFF3CTCoderBase<B,Q>::_workDecoderSIHO()
-{
-}
-
-template <typename B, typename Q>
-void AFF3CTCoderBase<B,Q>::_workDecoderHIHO()
-{
-}
-
-*/
+static Pothos::BlockRegistry registerBCHDecoder(
+    "/fec/bch_decoder",
+    &makeBCHDecoderBlock);

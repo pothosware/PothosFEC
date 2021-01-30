@@ -13,13 +13,26 @@ template <typename B, typename Q>
 using CodecUPtr = std::unique_ptr<aff3ct::module::Codec<B,Q>>;
 
 template <typename B, typename Q>
-class AFF3CTCoderBase: public Pothos::Block
+class AFF3CTCoderBase: virtual Pothos::Block
 {
 public:
+    using Class = AFF3CTCoderBase<B,Q>;
+
     AFF3CTCoderBase();
     virtual ~AFF3CTCoderBase();
 
+    size_t N() const;
+    virtual void setN(size_t N);
+
+    size_t K() const;
+    virtual void setK(size_t K);
+
+    bool systematic() const;
+    virtual void setSystematic(bool systematic);
+
 protected:
+    std::unique_ptr<aff3ct::factory::Encoder::parameters> _encoderParamsUPtr;
+    std::unique_ptr<aff3ct::factory::Decoder::parameters> _decoderParamsUPtr;
     CodecUPtr<B,Q> _codecUPtr;
 
     void _throwIfBlockActive() const;

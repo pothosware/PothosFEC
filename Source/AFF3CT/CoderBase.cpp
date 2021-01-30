@@ -11,6 +11,8 @@
 
 template <typename B, typename Q>
 AFF3CTCoderBase<B,Q>::AFF3CTCoderBase():
+    _encoderParamsUPtr(nullptr),
+    _decoderParamsUPtr(nullptr),
     _codecUPtr(nullptr)
 {
 }
@@ -18,6 +20,63 @@ AFF3CTCoderBase<B,Q>::AFF3CTCoderBase():
 template <typename B, typename Q>
 AFF3CTCoderBase<B,Q>::~AFF3CTCoderBase()
 {
+}
+
+template <typename B, typename Q>
+size_t AFF3CTCoderBase<B,Q>::N() const
+{
+    assert(_encoderParamsUPtr);
+    assert(_decoderParamsUPtr);
+    assert(_encoderParamsUPtr->N_cw == _decoderParamsUPtr->N_cw);
+
+    return size_t(_encoderParamsUPtr->N_cw);
+}
+
+template <typename B, typename Q>
+void AFF3CTCoderBase<B,Q>::setN(size_t N)
+{
+    assert(_encoderParamsUPtr);
+    assert(_decoderParamsUPtr);
+
+    _encoderParamsUPtr->N_cw = _decoderParamsUPtr->N_cw = int(N);
+}
+
+template <typename B, typename Q>
+size_t AFF3CTCoderBase<B,Q>::K() const
+{
+    assert(_encoderParamsUPtr);
+    assert(_decoderParamsUPtr);
+    assert(_encoderParamsUPtr->K == _decoderParamsUPtr->K);
+
+    return size_t(_encoderParamsUPtr->K);
+}
+
+template <typename B, typename Q>
+void AFF3CTCoderBase<B,Q>::setK(size_t K)
+{
+    assert(_encoderParamsUPtr);
+    assert(_decoderParamsUPtr);
+
+    _encoderParamsUPtr->K = _decoderParamsUPtr->K = int(K);
+}
+
+template <typename B, typename Q>
+bool AFF3CTCoderBase<B,Q>::systematic() const
+{
+    assert(_encoderParamsUPtr);
+    assert(_decoderParamsUPtr);
+    assert(_encoderParamsUPtr->systematic == _decoderParamsUPtr->systematic);
+
+    return _encoderParamsUPtr->systematic;
+}
+
+template <typename B, typename Q>
+void AFF3CTCoderBase<B,Q>::setSystematic(bool systematic)
+{
+    assert(_encoderParamsUPtr);
+    assert(_decoderParamsUPtr);
+
+    _encoderParamsUPtr->systematic = _decoderParamsUPtr->systematic = systematic;
 }
 
 template <typename B, typename Q>

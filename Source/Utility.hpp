@@ -16,10 +16,11 @@
 
 #include <algorithm>
 #include <exception>
+#include <memory>
 #include <string>
 #include <vector>
 
-template <typename SrcType, typename DstType>
+template <typename DstType, typename SrcType>
 static DstType* safeDynamicCast(SrcType* src)
 {
     auto* dst = dynamic_cast<DstType*>(src);
@@ -35,10 +36,16 @@ static DstType* safeDynamicCast(SrcType* src)
     return dst;
 }
 
-template <typename SrcType, typename DstType>
+template <typename DstType, typename SrcType>
 static inline const DstType* safeDynamicCast(const SrcType* src)
 {
     return safeDynamicCast(const_cast<SrcType*>(src));
+}
+
+template <typename DstType, typename SrcType>
+static inline const DstType* safeDynamicCast(const std::unique_ptr<SrcType>& srcUPtr)
+{
+    return safeDynamicCast<DstType, SrcType>(srcUPtr.get());
 }
 
 static inline void throwOnErrCode(int errCode)

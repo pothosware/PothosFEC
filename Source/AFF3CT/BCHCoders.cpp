@@ -12,9 +12,61 @@
 #include <cassert>
 #include <string>
 
+
 //
 // Base class
 //
+
+template <typename B, typename Q>
+class BCHCoder: virtual AFF3CTCoderBase<B,Q>
+{
+public:
+    using EncoderParamType = aff3ct::factory::Encoder_BCH::parameters;
+    using DecoderParamType = aff3ct::factory::Decoder_BCH::parameters;
+
+    BCHCoder(): AFF3CTCoderBase<B,Q>()
+    {
+        this->_encoderParamsUPtr.reset(new EncoderParamType);
+        this->_decoderParamsUPtr.reset(new DecoderParamType);
+    }
+
+protected:
+    void _resetCodec() override
+    {
+        assert(this->_encoderParamsUPtr);
+        assert(this->_decoderParamsUPtr);
+
+        this->_codecUPtr = AFF3CTDynamic::makeBCHCodec<B,Q>(
+                               *safeDynamicCast<EncoderParamType>(this->_encoderParamsUPtr),
+                               *safeDynamicCast<DecoderParamType>(this->_decoderParamsUPtr));
+    }
+};
+
+//
+// Encoder
+//
+
+template <typename B, typename Q>
+class BCHEncoder: virtual BCHCoder<B,Q>, virtual AFF3CTEncoder<B,Q>
+{
+public:
+    BCHEncoder(): BCHCoder<B,Q>(), AFF3CTEncoder<B,Q>()
+    {
+    }
+
+protected:
+    void _resetCodec() override
+    {
+        this->_encoderPtr = nullptr;
+
+        BCHCoder<B,Q>::_resetCodec();
+        assert(this->_codecUPtr);
+
+        this->_encoderPtr = this->_codecUPtr->get_encoder().get();
+    }
+};
+
+/*
 
 template <typename B, typename Q>
 class BCHCoder
@@ -230,18 +282,22 @@ private:
 // Registration
 //
 
+*/
+
 static Pothos::Block* makeBCHEncoderBlock(const Pothos::DType& dtype)
 {
 #define IfTypeThenEncoder(T) \
     if(doesDTypeMatch<T>(dtype)) return new BCHEncoder<B, AFF3CTTypeTraits<B>::Q>();
 
     IfTypeThenEncoder(B_8)
-    IfTypeThenEncoder(B_16)
-    IfTypeThenEncoder(B_32)
-    IfTypeThenEncoder(B_64)
+    //IfTypeThenEncoder(B_16)
+    //IfTypeThenEncoder(B_32)
+    //IfTypeThenEncoder(B_64)
 
     throw Pothos::InvalidArgumentException("BCHEncoder: invalid type "+dtype.toString());
 }
+
+/*
 
 static Pothos::Block* makeBCHDecoderBlock(const Pothos::DType& dtype, const std::string& mode)
 {
@@ -257,10 +313,16 @@ static Pothos::Block* makeBCHDecoderBlock(const Pothos::DType& dtype, const std:
     throw Pothos::InvalidArgumentException("BCHDecoder: invalid type "+dtype.toString() + ", mode "+mode);
 }
 
+*/
+
 static Pothos::BlockRegistry registerBCHEncoder(
     "/fec/bch_encoder",
     &makeBCHEncoderBlock);
 
+/*
+
 static Pothos::BlockRegistry registerBCHDecoder(
     "/fec/bch_decoder",
     &makeBCHDecoderBlock);
+
+*/

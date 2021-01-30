@@ -15,6 +15,12 @@ AFF3CTCoderBase<B,Q>::AFF3CTCoderBase():
     _decoderParamsUPtr(nullptr),
     _codecUPtr(nullptr)
 {
+    this->registerCall(this, POTHOS_FCN_TUPLE(Class, N));
+    this->registerCall(this, POTHOS_FCN_TUPLE(Class, setN));
+    this->registerCall(this, POTHOS_FCN_TUPLE(Class, K));
+    this->registerCall(this, POTHOS_FCN_TUPLE(Class, setK));
+    this->registerCall(this, POTHOS_FCN_TUPLE(Class, systematic));
+    this->registerCall(this, POTHOS_FCN_TUPLE(Class, setSystematic));
 }
 
 template <typename B, typename Q>
@@ -37,8 +43,10 @@ void AFF3CTCoderBase<B,Q>::setN(size_t N)
 {
     assert(_encoderParamsUPtr);
     assert(_decoderParamsUPtr);
+    this->_throwIfBlockIsActive();
 
     _encoderParamsUPtr->N_cw = _decoderParamsUPtr->N_cw = int(N);
+    this->_resetCodec();
 }
 
 template <typename B, typename Q>
@@ -56,8 +64,10 @@ void AFF3CTCoderBase<B,Q>::setK(size_t K)
 {
     assert(_encoderParamsUPtr);
     assert(_decoderParamsUPtr);
+    this->_throwIfBlockIsActive();
 
     _encoderParamsUPtr->K = _decoderParamsUPtr->K = int(K);
+    this->_resetCodec();
 }
 
 template <typename B, typename Q>
@@ -75,12 +85,14 @@ void AFF3CTCoderBase<B,Q>::setSystematic(bool systematic)
 {
     assert(_encoderParamsUPtr);
     assert(_decoderParamsUPtr);
+    this->_throwIfBlockIsActive();
 
     _encoderParamsUPtr->systematic = _decoderParamsUPtr->systematic = systematic;
+    this->_resetCodec();
 }
 
 template <typename B, typename Q>
-void AFF3CTCoderBase<B,Q>::_throwIfBlockActive() const
+void AFF3CTCoderBase<B,Q>::_throwIfBlockIsActive() const
 {
     if(this->isActive())
     {
@@ -125,91 +137,88 @@ template class AFF3CTEncoder<B_32,Q_32>;
 template class AFF3CTEncoder<B_64,Q_64>;
 
 //
-// Decoder SISO
+// Decoder
 //
 
 template <typename B, typename Q>
-AFF3CTDecoderSISO<B,Q>::AFF3CTDecoderSISO():
+AFF3CTDecoder<B,Q>::AFF3CTDecoder(AFF3CTDecoderType decoderType):
     AFF3CTCoderBase<B,Q>(),
-    _decoderSISOSPtr(nullptr)
+    _decoderType(decoderType),
+    _decoderSISOSPtr(nullptr),
+    _decoderSIHOSPtr(nullptr),
+    _decoderHIHOSPtr(nullptr)
 {
     static const Pothos::DType BDType(typeid(B));
     static const Pothos::DType QDType(typeid(Q));
+
+    switch(decoderType)
+    {
+        case AFF3CTDecoderType::SISO:
+            this->setupInput(0, QDType);
+            this->setupOutput(0, QDType);
+            break;
+
+        case AFF3CTDecoderType::SIHO:
+            this->setupInput(0, QDType);
+            this->setupOutput(0, BDType);
+            break;
+
+        case AFF3CTDecoderType::HIHO:
+            this->setupInput(0, BDType);
+            this->setupOutput(0, BDType);
+            break;
+
+        default:
+            throw Pothos::AssertionViolationException("Invalid decoder type enum "+std::to_string(int(_decoderType)));
+    }
 
     this->setupInput(0, QDType);
     this->setupOutput(0, BDType);
 }
 
 template <typename B, typename Q>
-AFF3CTDecoderSISO<B,Q>::~AFF3CTDecoderSISO()
+AFF3CTDecoder<B,Q>::~AFF3CTDecoder()
 {
 }
 
 template <typename B, typename Q>
-void AFF3CTDecoderSISO<B,Q>::work()
+void AFF3CTDecoder<B,Q>::work()
 {
-    if(!_decoderSISOSPtr) throw Pothos::AssertionViolationException("Null _decoderSISOSPtr");
-}
+    switch(_decoderType)
+    {
+        case AFF3CTDecoderType::SISO:
+            this->_workSISO();
+            break;
 
-template class AFF3CTDecoderSISO<B_8,Q_8>;
-template class AFF3CTDecoderSISO<B_16,Q_16>;
-template class AFF3CTDecoderSISO<B_32,Q_32>;
-template class AFF3CTDecoderSISO<B_64,Q_64>;
+        case AFF3CTDecoderType::SIHO:
+            this->_workSIHO();
+            break;
 
-//
-// Decoder SIHO
-//
+        case AFF3CTDecoderType::HIHO:
+            this->_workHIHO();
+            break;
 
-template <typename B, typename Q>
-AFF3CTDecoderSIHO<B,Q>::AFF3CTDecoderSIHO():
-    AFF3CTCoderBase<B,Q>(),
-    _decoderSIHOSPtr(nullptr)
-{
-    static const Pothos::DType BDType(typeid(B));
-
-    this->setupInput(0, BDType);
-    this->setupOutput(0, BDType);
+        default:
+            throw Pothos::AssertionViolationException("Invalid decoder type enum "+std::to_string(int(_decoderType)));
+    }
 }
 
 template <typename B, typename Q>
-AFF3CTDecoderSIHO<B,Q>::~AFF3CTDecoderSIHO()
+void AFF3CTDecoder<B,Q>::_workSISO()
 {
 }
 
 template <typename B, typename Q>
-void AFF3CTDecoderSIHO<B,Q>::work()
-{
-    if(!_decoderSIHOSPtr) throw Pothos::AssertionViolationException("Null _decoderSIHOSPtr");
-}
-
-template class AFF3CTDecoderSIHO<B_8,Q_8>;
-template class AFF3CTDecoderSIHO<B_16,Q_16>;
-template class AFF3CTDecoderSIHO<B_32,Q_32>;
-template class AFF3CTDecoderSIHO<B_64,Q_64>;
-
-//
-// Decoder HIHO
-//
-
-template <typename B, typename Q>
-AFF3CTDecoderHIHO<B,Q>::AFF3CTDecoderHIHO():
-    AFF3CTCoderBase<B,Q>(),
-    _decoderHIHOSPtr(nullptr)
+void AFF3CTDecoder<B,Q>::_workSIHO()
 {
 }
 
 template <typename B, typename Q>
-AFF3CTDecoderHIHO<B,Q>::~AFF3CTDecoderHIHO()
+void AFF3CTDecoder<B,Q>::_workHIHO()
 {
 }
 
-template <typename B, typename Q>
-void AFF3CTDecoderHIHO<B,Q>::work()
-{
-    if(!_decoderHIHOSPtr) throw Pothos::AssertionViolationException("Null _decoderHIHOSPtr");
-}
-
-template class AFF3CTDecoderHIHO<B_8,Q_8>;
-template class AFF3CTDecoderHIHO<B_16,Q_16>;
-template class AFF3CTDecoderHIHO<B_32,Q_32>;
-template class AFF3CTDecoderHIHO<B_64,Q_64>;
+template class AFF3CTDecoder<B_8,Q_8>;
+template class AFF3CTDecoder<B_16,Q_16>;
+template class AFF3CTDecoder<B_32,Q_32>;
+template class AFF3CTDecoder<B_64,Q_64>;

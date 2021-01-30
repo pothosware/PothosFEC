@@ -12,33 +12,36 @@
 #include <cassert>
 #include <string>
 
-
 //
-// Base class
+// Helper class
 //
 
 template <typename B, typename Q>
-class BCHCoder: virtual AFF3CTCoderBase<B,Q>
+struct BCHCoder
 {
-public:
     using EncoderParamType = aff3ct::factory::Encoder_BCH::parameters;
     using DecoderParamType = aff3ct::factory::Decoder_BCH::parameters;
 
-    BCHCoder(): AFF3CTCoderBase<B,Q>()
+    static void initCoderParams(
+        std::unique_ptr<aff3ct::factory::Encoder::parameters>& rEncoderParamsUPtr,
+        std::unique_ptr<aff3ct::factory::Decoder::parameters>& rDecoderParamsUPtr)
     {
-        this->_encoderParamsUPtr.reset(new EncoderParamType);
-        this->_decoderParamsUPtr.reset(new DecoderParamType);
+        rEncoderParamsUPtr.reset(new EncoderParamType);
+        rDecoderParamsUPtr.reset(new DecoderParamType);
     }
 
-protected:
-    void _resetCodec() override
+    static void resetCodec(
+        const std::unique_ptr<aff3ct::factory::Encoder::parameters>& encoderParamsUPtr,
+        const std::unique_ptr<aff3ct::factory::Decoder::parameters>& decoderParamsUPtr,
+        std::unique_ptr<aff3ct::module::Codec<B,Q>>& rCodecUPtr)
     {
-        assert(this->_encoderParamsUPtr);
-        assert(this->_decoderParamsUPtr);
+        assert(encoderParamsUPtr);
+        assert(decoderParamsUPtr);
 
-        this->_codecUPtr = AFF3CTDynamic::makeBCHCodec<B,Q>(
-                               *safeDynamicCast<EncoderParamType>(this->_encoderParamsUPtr),
-                               *safeDynamicCast<DecoderParamType>(this->_decoderParamsUPtr));
+        rCodecUPtr = AFF3CTDynamic::makeBCHCodec<B,Q>(
+                         *safeDynamicCast<EncoderParamType>(encoderParamsUPtr),
+                         *safeDynamicCast<DecoderParamType>(decoderParamsUPtr));
+        assert(rCodecUPtr);
     }
 };
 
@@ -47,234 +50,74 @@ protected:
 //
 
 template <typename B, typename Q>
-class BCHEncoder: virtual BCHCoder<B,Q>, virtual AFF3CTEncoder<B,Q>
+class BCHEncoder: public AFF3CTEncoder<B,Q>
 {
 public:
-    BCHEncoder(): BCHCoder<B,Q>(), AFF3CTEncoder<B,Q>()
+    BCHEncoder(): AFF3CTEncoder<B,Q>()
     {
+        BCHCoder<B,Q>::initCoderParams(this->_encoderParamsUPtr, this->_decoderParamsUPtr);
     }
 
 protected:
     void _resetCodec() override
     {
-        this->_encoderPtr = nullptr;
+        assert(!this->isActive());
 
-        BCHCoder<B,Q>::_resetCodec();
-        assert(this->_codecUPtr);
+        this->_encoderPtr = nullptr;
+        BCHCoder<B,Q>::resetCodec(
+            this->_encoderParamsUPtr,
+            this->_decoderParamsUPtr,
+            this->_codecUPtr);
 
         this->_encoderPtr = this->_codecUPtr->get_encoder().get();
     }
 };
 
-/*
+//
+// Decoder
+//
 
 template <typename B, typename Q>
-class BCHCoder
+class BCHDecoder: public AFF3CTDecoder<B,Q>
 {
 public:
-    BCHCoder()
+    using Class = BCHDecoder<B,Q>;
+    using DecoderParamType = typename BCHCoder<B,Q>::DecoderParamType;
+
+    BCHDecoder(bool siho):
+        AFF3CTDecoder<B,Q>(siho ? AFF3CTDecoderType::SIHO : AFF3CTDecoderType::HIHO)
     {
-        _decoderParams.implem = "FAST";
-    }
+        BCHCoder<B,Q>::initCoderParams(this->_encoderParamsUPtr, this->_decoderParamsUPtr);
 
-    virtual ~BCHCoder() = default;
-
-    size_t N() const
-    {
-        assert(_encoderParams.N_cw == _decoderParams.N_cw);
-
-        return static_cast<size_t>(_encoderParams.N_cw);
-    }
-
-    virtual void setN(size_t N)
-    {
-        _encoderParams.N_cw = static_cast<int>(N);
-        _decoderParams.N_cw = static_cast<int>(N);
-    }
-
-    size_t K() const
-    {
-        assert(_encoderParams.K == _decoderParams.K);
-
-        return static_cast<size_t>(_encoderParams.K);
-    }
-
-    virtual void setK(size_t K)
-    {
-        if(K <= 3) throw Pothos::RangeException("K must be > 3");
-
-        _encoderParams.K = static_cast<int>(K);
-        _decoderParams.K = static_cast<int>(K);
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, correctionPower));
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setCorrectionPower));
     }
 
     size_t correctionPower() const
     {
-        return _decoderParams.t;
+        assert(this->_decoderParamsUPtr);
+
+        return size_t(safeDynamicCast<DecoderParamType>(this->_decoderParamsUPtr)->t);
     }
 
-    virtual void setCorrectionPower(size_t t)
+    void setCorrectionPower(size_t correctionPower)
     {
-        _decoderParams.t = static_cast<int>(t);
-    }
+        assert(this->_decoderParamsUPtr);
+        this->_throwIfBlockIsActive();
 
-    std::string decoderImplementation() const
-    {
-        return _decoderParams.implem;
-    }
-
-    virtual void setDecoderImplementation(const std::string& impl)
-    {
-        static const std::vector<std::string> Impls
-        {
-            "STD",
-            "FAST",
-            "GENIUS"
-        };
-        throwIfValueNotInVector(Impls, impl);
-
-        _decoderParams.implem = impl;
+        safeDynamicCast<DecoderParamType>(this->_decoderParamsUPtr)->t = int(correctionPower);
+        this->_resetCodec();
     }
 
 protected:
-    aff3ct::factory::Encoder_BCH::parameters _encoderParams;
-    aff3ct::factory::Decoder_BCH::parameters _decoderParams;
-
-    void _resetCodec(CodecUPtr<B,Q>& rCodecUPtr)
-    {
-        rCodecUPtr = AFF3CTDynamic::makeBCHCodec<B,Q>(_encoderParams, _decoderParams);
-    }
-};
-
-//
-// Encoder
-//
-
-template <typename B, typename Q>
-class BCHEncoder: public AFF3CTEncoder<B,Q>, public BCHCoder<B,Q>
-{
-public:
-    using Class = BCHEncoder<B,Q>;
-
-    BCHEncoder(): AFF3CTEncoder<B,Q>(), BCHCoder<B,Q>()
-    {
-        // TODO: override default parameters
-
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, N));
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setN));
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, K));
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setK));
-    }
-
-    ~BCHEncoder() = default;
-
-    void setN(size_t N) override
-    {
-        this->_throwIfBlockActive();
-
-        BCHCoder<B,Q>::setN(N);
-
-        this->_resetCodec();
-    }
-
-    void setK(size_t K) override
-    {
-        this->_throwIfBlockActive();
-
-        BCHCoder<B,Q>::setK(K);
-
-        this->_resetCodec();
-    }
-
-private:
     void _resetCodec() override
     {
-        this->_encoderPtr = nullptr;
+        assert(!this->isActive());
 
-        BCHCoder<B,Q>::_resetCodec(this->_codecUPtr);
-        assert(this->_codecUPtr);
-
-        this->_encoderPtr = this->_codecUPtr->get_encoder().get();
-        assert(this->_encoderPtr);
-    }
-};
-
-//
-// Decoder SIHO
-//
-
-template <typename B, typename Q>
-class BCHDecoderSIHO: public AFF3CTDecoderSIHO<B,Q>, public BCHCoder<B,Q>
-{
-public:
-    using Class = BCHDecoderSIHO<B,Q>;
-
-    BCHDecoderSIHO(): AFF3CTDecoderSIHO<B,Q>(), BCHCoder<B,Q>()
-    {
-        // TODO: setter for optional field
-        // TODO: override default parameters
-
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, N));
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setN));
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, K));
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setK));
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, correctionPower));
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setCorrectionPower));
-    }
-
-    ~BCHDecoderSIHO() = default;
-
-private:
-    void _resetCodec() override
-    {
-        this->_decoderSIHOSPtr.reset();
-
-        BCHCoder<B,Q>::_resetCodec(this->_codecUPtr);
-        assert(this->_codecUPtr);
-
-        this->_decoderSIHOSPtr = safeDynamicCast<
-                                     aff3ct::module::Codec<B,Q>,
-                                     aff3ct::module::Codec_SIHO<B,Q>
-                                 >(this->_codecUPtr.get())->get_decoder_siho();
-    }
-};
-
-//
-// Decoder HIHO
-//
-
-template <typename B, typename Q>
-class BCHDecoderHIHO: public AFF3CTDecoderHIHO<B,Q>, public BCHCoder<B,Q>
-{
-public:
-    using Class = BCHDecoderHIHO<B,Q>;
-
-    BCHDecoderHIHO(): AFF3CTDecoderHIHO<B,Q>(), BCHCoder<B,Q>()
-    {
-        // TODO: setter for optional field
-        // TODO: override default parameters
-
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, N));
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setN));
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, K));
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setK));
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, correctionPower));
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setCorrectionPower));
-    }
-
-    ~BCHDecoderHIHO() = default;
-
-private:
-    void _resetCodec() override
-    {
-        this->_decoderHIHOSPtr.reset();
-
-        BCHCoder<B,Q>::_resetCodec(this->_codecUPtr);
-        assert(this->_codecUPtr);
-
-        this->_decoderHIHOSPtr = safeDynamicCast<
-                                     aff3ct::module::Codec<B,Q>,
-                                     aff3ct::module::Codec_HIHO<B,Q>
-                                 >(this->_codecUPtr.get())->get_decoder_hiho();
+        BCHCoder<B,Q>::resetCodec(
+            this->_encoderParamsUPtr,
+            this->_decoderParamsUPtr,
+            this->_codecUPtr);
     }
 };
 
@@ -282,28 +125,24 @@ private:
 // Registration
 //
 
-*/
-
 static Pothos::Block* makeBCHEncoderBlock(const Pothos::DType& dtype)
 {
 #define IfTypeThenEncoder(T) \
     if(doesDTypeMatch<T>(dtype)) return new BCHEncoder<B, AFF3CTTypeTraits<B>::Q>();
 
     IfTypeThenEncoder(B_8)
-    //IfTypeThenEncoder(B_16)
-    //IfTypeThenEncoder(B_32)
-    //IfTypeThenEncoder(B_64)
+    IfTypeThenEncoder(B_16)
+    IfTypeThenEncoder(B_32)
+    IfTypeThenEncoder(B_64)
 
     throw Pothos::InvalidArgumentException("BCHEncoder: invalid type "+dtype.toString());
 }
 
-/*
-
 static Pothos::Block* makeBCHDecoderBlock(const Pothos::DType& dtype, const std::string& mode)
 {
 #define IfTypeThenDecoder(T) \
-    if(doesDTypeMatch<T>(dtype) && (mode == "SIHO")) return new BCHDecoderSIHO<B, AFF3CTTypeTraits<B>::Q>(); \
-    if(doesDTypeMatch<T>(dtype) && (mode == "HIHO")) return new BCHDecoderHIHO<B, AFF3CTTypeTraits<B>::Q>();
+    if(doesDTypeMatch<T>(dtype) && (mode == "SIHO")) return new BCHDecoder<B, AFF3CTTypeTraits<B>::Q>(true); \
+    if(doesDTypeMatch<T>(dtype) && (mode == "HIHO")) return new BCHDecoder<B, AFF3CTTypeTraits<B>::Q>(false);
 
     IfTypeThenDecoder(B_8)
     IfTypeThenDecoder(B_16)
@@ -313,16 +152,10 @@ static Pothos::Block* makeBCHDecoderBlock(const Pothos::DType& dtype, const std:
     throw Pothos::InvalidArgumentException("BCHDecoder: invalid type "+dtype.toString() + ", mode "+mode);
 }
 
-*/
-
 static Pothos::BlockRegistry registerBCHEncoder(
     "/fec/bch_encoder",
     &makeBCHEncoderBlock);
 
-/*
-
 static Pothos::BlockRegistry registerBCHDecoder(
     "/fec/bch_decoder",
     &makeBCHDecoderBlock);
-
-*/

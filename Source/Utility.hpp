@@ -43,7 +43,7 @@ static inline const DstType* safeDynamicCast(const SrcType* src)
 }
 
 template <typename DstType, typename SrcType>
-static inline const DstType* safeDynamicCast(const std::unique_ptr<SrcType>& srcUPtr)
+static inline DstType* safeDynamicCast(const std::unique_ptr<SrcType>& srcUPtr)
 {
     return safeDynamicCast<DstType, SrcType>(srcUPtr.get());
 }

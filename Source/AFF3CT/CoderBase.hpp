@@ -9,11 +9,18 @@
 
 #include <memory>
 
+enum class AFF3CTDecoderType
+{
+    SISO,
+    SIHO,
+    HIHO
+};
+
 template <typename B, typename Q>
 using CodecUPtr = std::unique_ptr<aff3ct::module::Codec<B,Q>>;
 
 template <typename B, typename Q>
-class AFF3CTCoderBase: virtual Pothos::Block
+class AFF3CTCoderBase: public Pothos::Block
 {
 public:
     using Class = AFF3CTCoderBase<B,Q>;
@@ -35,7 +42,7 @@ protected:
     std::unique_ptr<aff3ct::factory::Decoder::parameters> _decoderParamsUPtr;
     CodecUPtr<B,Q> _codecUPtr;
 
-    void _throwIfBlockActive() const;
+    void _throwIfBlockIsActive() const;
 
     virtual void _resetCodec() = 0;
 };
@@ -57,46 +64,24 @@ protected:
 };
 
 template <typename B, typename Q>
-class AFF3CTDecoderSISO: public AFF3CTCoderBase<B,Q>
+class AFF3CTDecoder: public AFF3CTCoderBase<B,Q>
 {
 public:
-    using Class = AFF3CTDecoderSISO<B,Q>;
+    using Class = AFF3CTDecoder<B,Q>;
 
-    AFF3CTDecoderSISO();
-    virtual ~AFF3CTDecoderSISO();
+    AFF3CTDecoder(AFF3CTDecoderType decoderType);
+    virtual ~AFF3CTDecoder();
 
     void work() override;
 
 protected:
+    AFF3CTDecoderType _decoderType;
+
     std::shared_ptr<aff3ct::module::Decoder_SISO<B>> _decoderSISOSPtr;
-};
-
-template <typename B, typename Q>
-class AFF3CTDecoderSIHO: public AFF3CTCoderBase<B,Q>
-{
-public:
-    using Class = AFF3CTDecoderSIHO<B,Q>;
-
-    AFF3CTDecoderSIHO();
-    virtual ~AFF3CTDecoderSIHO();
-
-    void work() override;
-
-protected:
     std::shared_ptr<aff3ct::module::Decoder_SIHO<B>> _decoderSIHOSPtr;
-};
-
-template <typename B, typename Q>
-class AFF3CTDecoderHIHO: public AFF3CTCoderBase<B,Q>
-{
-public:
-    using Class = AFF3CTDecoderHIHO<B,Q>;
-
-    AFF3CTDecoderHIHO();
-    virtual ~AFF3CTDecoderHIHO();
-
-    void work() override;
-
-protected:
     std::shared_ptr<aff3ct::module::Decoder_HIHO<B>> _decoderHIHOSPtr;
+
+    void _workSISO();
+    void _workSIHO();
+    void _workHIHO();
 };

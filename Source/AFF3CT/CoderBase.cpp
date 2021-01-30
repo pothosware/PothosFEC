@@ -20,6 +20,15 @@ AFF3CTCoderBase<B,Q>::~AFF3CTCoderBase()
 {
 }
 
+template <typename B, typename Q>
+void AFF3CTCoderBase<B,Q>::_throwIfBlockActive() const
+{
+    if(this->isActive())
+    {
+        throw Pothos::RuntimeException("Cannot set parameter while block is active");
+    }
+}
+
 template class AFF3CTCoderBase<B_8,Q_8>;
 template class AFF3CTCoderBase<B_16,Q_16>;
 template class AFF3CTCoderBase<B_32,Q_32>;

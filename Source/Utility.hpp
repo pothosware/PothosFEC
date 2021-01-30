@@ -14,7 +14,10 @@
 
 #include <Poco/Format.h>
 
+#include <algorithm>
+#include <exception>
 #include <string>
+#include <vector>
 
 template <typename SrcType, typename DstType>
 static DstType* safeDynamicCast(SrcType* src)
@@ -47,4 +50,20 @@ template <typename T>
 static inline bool doesDTypeMatch(const Pothos::DType& dtype)
 {
     return (Pothos::DType::fromDType(dtype, 1) == Pothos::DType(typeid(T)));
+}
+
+template <typename T>
+static void throwIfValueNotInVector(
+    const std::vector<T>& vec,
+    const T& val)
+{
+    auto iter = std::find(vec.begin(), vec.end(), val);
+    if(iter == vec.end())
+    {
+        throw Pothos::InvalidArgumentException(
+                  Poco::format(
+                      "Invalid input %s. Valid values: %s",
+                      Pothos::Object(val).toString(),
+                      Pothos::Object(vec).toString()));
+    }
 }

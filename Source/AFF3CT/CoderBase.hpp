@@ -22,6 +22,8 @@ public:
 protected:
     CodecUPtr<B,Q> _codecUPtr;
 
+    void _throwIfBlockActive() const;
+
     virtual void _resetCodec() = 0;
 };
 

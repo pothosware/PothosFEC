@@ -58,6 +58,8 @@ public:
         BCHHelper<B,Q>::initCoderParams(this->_encoderParamsUPtr, this->_decoderParamsUPtr);
     }
 
+    virtual ~BCHEncoder() = default;
+
 protected:
     void _resetCodec() override
     {
@@ -70,6 +72,7 @@ protected:
             this->_codecUPtr);
 
         this->_encoderPtr = this->_codecUPtr->get_encoder().get();
+        assert(this->_encoderPtr);
     }
 };
 
@@ -77,14 +80,14 @@ protected:
 // Decoder
 //
 
-template <typename B, typename Q>
+template <typename B, typename Q, bool siho>
 class BCHDecoder: public AFF3CTDecoder<B,Q>
 {
 public:
-    using Class = BCHDecoder<B,Q>;
+    using Class = BCHDecoder<B,Q,siho>;
     using DecoderParamType = typename BCHHelper<B,Q>::DecoderParamType;
 
-    BCHDecoder(bool siho):
+    BCHDecoder():
         AFF3CTDecoder<B,Q>(siho ? AFF3CTDecoderType::SIHO : AFF3CTDecoderType::HIHO)
     {
         BCHHelper<B,Q>::initCoderParams(this->_encoderParamsUPtr, this->_decoderParamsUPtr);
@@ -92,6 +95,8 @@ public:
         this->registerCall(this, POTHOS_FCN_TUPLE(Class, correctionPower));
         this->registerCall(this, POTHOS_FCN_TUPLE(Class, setCorrectionPower));
     }
+
+    virtual ~BCHDecoder() = default;
 
     size_t correctionPower() const
     {
@@ -118,6 +123,9 @@ protected:
             this->_encoderParamsUPtr,
             this->_decoderParamsUPtr,
             this->_codecUPtr);
+
+        if(siho) this->_decoderSIHOSPtr = this->_codecAsCodecSIHO()->get_decoder_siho();
+        else     this->_decoderHIHOSPtr = this->_codecAsCodecHIHO()->get_decoder_hiho();
     }
 };
 
@@ -141,8 +149,8 @@ static Pothos::Block* makeBCHEncoderBlock(const Pothos::DType& dtype)
 static Pothos::Block* makeBCHDecoderBlock(const Pothos::DType& dtype, const std::string& mode)
 {
 #define IfTypeThenDecoder(T) \
-    if(doesDTypeMatch<T>(dtype) && (mode == "SIHO")) return new BCHDecoder<B, AFF3CTTypeTraits<B>::Q>(true); \
-    if(doesDTypeMatch<T>(dtype) && (mode == "HIHO")) return new BCHDecoder<B, AFF3CTTypeTraits<B>::Q>(false);
+    if(doesDTypeMatch<T>(dtype) && (mode == "SIHO")) return new BCHDecoder<B, AFF3CTTypeTraits<B>::Q, true>(); \
+    if(doesDTypeMatch<T>(dtype) && (mode == "HIHO")) return new BCHDecoder<B, AFF3CTTypeTraits<B>::Q, false>();
 
     IfTypeThenDecoder(B_8)
     IfTypeThenDecoder(B_16)

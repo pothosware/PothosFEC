@@ -3,10 +3,13 @@
 
 #pragma once
 
+#include "Utility.hpp"
+
 #include <Pothos/Framework.hpp>
 
 #include <aff3ct.hpp>
 
+#include <cassert>
 #include <memory>
 
 enum class AFF3CTDecoderType
@@ -80,6 +83,24 @@ protected:
     std::shared_ptr<aff3ct::module::Decoder_SISO<B>> _decoderSISOSPtr;
     std::shared_ptr<aff3ct::module::Decoder_SIHO<B>> _decoderSIHOSPtr;
     std::shared_ptr<aff3ct::module::Decoder_HIHO<B>> _decoderHIHOSPtr;
+
+    inline aff3ct::module::Codec_SISO<B,Q>* _codecAsCodecSISO()
+    {
+        assert(this->_codecUPtr);
+        return safeDynamicCast<aff3ct::module::Codec_SISO<B,Q>>(this->_codecUPtr);
+    }
+
+    inline aff3ct::module::Codec_SIHO<B,Q>* _codecAsCodecSIHO()
+    {
+        assert(this->_codecUPtr);
+        return safeDynamicCast<aff3ct::module::Codec_SIHO<B,Q>>(this->_codecUPtr);
+    }
+
+    inline aff3ct::module::Codec_HIHO<B,Q>* _codecAsCodecHIHO()
+    {
+        assert(this->_codecUPtr);
+        return safeDynamicCast<aff3ct::module::Codec_HIHO<B,Q>>(this->_codecUPtr);
+    }
 
     void _workSISO();
     void _workSIHO();

@@ -17,7 +17,7 @@
 //
 
 template <typename B, typename Q>
-struct BCHCoder
+struct BCHHelper
 {
     using EncoderParamType = aff3ct::factory::Encoder_BCH::parameters;
     using DecoderParamType = aff3ct::factory::Decoder_BCH::parameters;
@@ -55,7 +55,7 @@ class BCHEncoder: public AFF3CTEncoder<B,Q>
 public:
     BCHEncoder(): AFF3CTEncoder<B,Q>()
     {
-        BCHCoder<B,Q>::initCoderParams(this->_encoderParamsUPtr, this->_decoderParamsUPtr);
+        BCHHelper<B,Q>::initCoderParams(this->_encoderParamsUPtr, this->_decoderParamsUPtr);
     }
 
 protected:
@@ -64,7 +64,7 @@ protected:
         assert(!this->isActive());
 
         this->_encoderPtr = nullptr;
-        BCHCoder<B,Q>::resetCodec(
+        BCHHelper<B,Q>::resetCodec(
             this->_encoderParamsUPtr,
             this->_decoderParamsUPtr,
             this->_codecUPtr);
@@ -82,12 +82,12 @@ class BCHDecoder: public AFF3CTDecoder<B,Q>
 {
 public:
     using Class = BCHDecoder<B,Q>;
-    using DecoderParamType = typename BCHCoder<B,Q>::DecoderParamType;
+    using DecoderParamType = typename BCHHelper<B,Q>::DecoderParamType;
 
     BCHDecoder(bool siho):
         AFF3CTDecoder<B,Q>(siho ? AFF3CTDecoderType::SIHO : AFF3CTDecoderType::HIHO)
     {
-        BCHCoder<B,Q>::initCoderParams(this->_encoderParamsUPtr, this->_decoderParamsUPtr);
+        BCHHelper<B,Q>::initCoderParams(this->_encoderParamsUPtr, this->_decoderParamsUPtr);
 
         this->registerCall(this, POTHOS_FCN_TUPLE(Class, correctionPower));
         this->registerCall(this, POTHOS_FCN_TUPLE(Class, setCorrectionPower));
@@ -114,7 +114,7 @@ protected:
     {
         assert(!this->isActive());
 
-        BCHCoder<B,Q>::resetCodec(
+        BCHHelper<B,Q>::resetCodec(
             this->_encoderParamsUPtr,
             this->_decoderParamsUPtr,
             this->_codecUPtr);

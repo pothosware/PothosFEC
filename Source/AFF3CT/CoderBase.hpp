@@ -80,7 +80,7 @@ public:
 protected:
     AFF3CTDecoderType _decoderType;
 
-    std::shared_ptr<aff3ct::module::Decoder_SISO<B>> _decoderSISOSPtr;
+    std::shared_ptr<aff3ct::module::Decoder_SISO<Q>> _decoderSISOSPtr;
     std::shared_ptr<aff3ct::module::Decoder_SIHO<B>> _decoderSIHOSPtr;
     std::shared_ptr<aff3ct::module::Decoder_HIHO<B>> _decoderHIHOSPtr;
 

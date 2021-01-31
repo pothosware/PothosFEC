@@ -119,6 +119,8 @@ protected:
     {
         assert(!this->isActive());
 
+        this->_decoderSIHOSPtr.reset();
+        this->_decoderHIHOSPtr.reset();
         BCHHelper<B,Q>::resetCodec(
             this->_encoderParamsUPtr,
             this->_decoderParamsUPtr,

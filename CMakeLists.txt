@@ -72,6 +72,7 @@ POTHOS_MODULE_UTIL(
 
         Source/AFF3CT/BCHCoders.cpp
         Source/AFF3CT/CoderBase.cpp
+        Source/AFF3CT/LDPCCoders.cpp
 
         Testing/CoderTests.cpp
         Testing/TestBitErrorRate.cpp

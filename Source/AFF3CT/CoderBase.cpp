@@ -171,9 +171,6 @@ AFF3CTDecoder<B,Q>::AFF3CTDecoder(AFF3CTDecoderType decoderType):
         default:
             throw Pothos::AssertionViolationException("Invalid decoder type enum "+std::to_string(int(_decoderType)));
     }
-
-    this->setupInput(0, QDType);
-    this->setupOutput(0, BDType);
 }
 
 template <typename B, typename Q>

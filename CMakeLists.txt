@@ -75,6 +75,7 @@ POTHOS_MODULE_UTIL(
         Source/AFF3CT/LDPCCoders.cpp
 
         Testing/CoderTests.cpp
+        Testing/TestAFF3CTCoders.cpp
         Testing/TestBitErrorRate.cpp
         Testing/TestConvolution.cpp
         Testing/TestLTETurboCoders.cpp

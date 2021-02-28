@@ -29,6 +29,12 @@ AFF3CTCoderBase<B,Q>::~AFF3CTCoderBase()
 }
 
 template <typename B, typename Q>
+void AFF3CTCoderBase<B,Q>::activate()
+{
+    this->_resetCodec();
+}
+
+template <typename B, typename Q>
 size_t AFF3CTCoderBase<B,Q>::N() const
 {
     assert(_encoderParamsUPtr);

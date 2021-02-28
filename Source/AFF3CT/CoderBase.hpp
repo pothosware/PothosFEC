@@ -31,6 +31,8 @@ public:
     AFF3CTCoderBase();
     virtual ~AFF3CTCoderBase();
 
+    void activate() override;
+
     size_t N() const;
     virtual void setN(size_t N);
 

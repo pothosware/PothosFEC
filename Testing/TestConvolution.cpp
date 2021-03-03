@@ -1,4 +1,4 @@
-// Copyright (c) 2020 Nicholas Corgan
+// Copyright (c) 2020-2021 Nicholas Corgan
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "TestUtility.hpp"
@@ -272,7 +272,7 @@ static void testBlockGetters(
         block.call<int>("length"));
     POTHOS_TEST_EQUALV(
         testParams.expectedGen,
-        block.call<std::vector<int>>("gen"));
+        block.call<std::vector<unsigned int>>("gen"));
     POTHOS_TEST_EQUAL(
         testParams.expectedRGen,
         block.call<int>("rgen"));
@@ -380,16 +380,16 @@ static void testGenericConvCoderSetter(const Pothos::Proxy& convCoder)
     for(int N: validN)
     {
         convCoder.call("setN", N);
-        POTHOS_TEST_EQUAL(N, convCoder.call("N"));
+        POTHOS_TEST_EQUAL(N, convCoder.call<int>("N"));
     }
     for(int K: validK)
     {
         convCoder.call("setK", K);
-        POTHOS_TEST_EQUAL(K, convCoder.call("K"));
+        POTHOS_TEST_EQUAL(K, convCoder.call<int>("K"));
     }
 
     convCoder.call("setLength", testLength);
-    POTHOS_TEST_EQUAL(testLength, convCoder.call("length"));
+    POTHOS_TEST_EQUAL(testLength, convCoder.call<size_t>("length"));
 
     convCoder.call("setGen", testGen);
     POTHOS_TEST_EQUALV(testGen, convCoder.call<std::vector<unsigned>>("gen"));
@@ -404,7 +404,7 @@ static void testGenericConvCoderSetter(const Pothos::Proxy& convCoder)
     }
 
     convCoder.call("setRGen", testRGen);
-    POTHOS_TEST_EQUAL(testRGen, convCoder.call("rgen"));
+    POTHOS_TEST_EQUAL(testRGen, convCoder.call<unsigned>("rgen"));
 }
 
 POTHOS_TEST_BLOCK("/fec/tests", test_generic_conv_coder_setter)

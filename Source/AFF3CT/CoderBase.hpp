@@ -42,13 +42,23 @@ public:
     bool systematic() const;
     virtual void setSystematic(bool systematic);
 
+    std::string blockStartID() const;
+    void setBlockStartID(const std::string& blockStartID);
+
+    void propagateLabels(const Pothos::InputPort* input) override;
+
+    virtual void work() = 0;
+
 protected:
     std::unique_ptr<aff3ct::factory::Encoder::parameters> _encoderParamsUPtr;
     std::unique_ptr<aff3ct::factory::Decoder::parameters> _decoderParamsUPtr;
     CodecUPtr<B,Q> _codecUPtr;
 
+    std::string _blockStartID;
+
     void _throwIfBlockIsActive() const;
 
+    virtual void _setPortReserves() = 0;
     virtual void _resetCodec() = 0;
 };
 
@@ -66,6 +76,10 @@ public:
 protected:
     // Stored as unique_ptr
     aff3ct::module::Encoder<B>* _encoderPtr;
+
+    virtual void _work();
+    virtual void _blockIDWork();
+    void _setPortReserves() override;
 };
 
 template <typename B, typename Q>
@@ -92,10 +106,20 @@ protected:
         return safeDynamicCast<aff3ct::module::Codec_SISO<B,Q>>(this->_codecUPtr);
     }
 
+    inline const aff3ct::module::Codec_SISO<B,Q>* _codecAsCodecSISO() const
+    {
+        return const_cast<Class*>(this)->_codecAsCodecSISO();
+    }
+
     inline aff3ct::module::Codec_SIHO<B,Q>* _codecAsCodecSIHO()
     {
         assert(this->_codecUPtr);
         return safeDynamicCast<aff3ct::module::Codec_SIHO<B,Q>>(this->_codecUPtr);
+    }
+
+    inline const aff3ct::module::Codec_SIHO<B,Q>* _codecAsCodecSIHO() const
+    {
+        return const_cast<Class*>(this)->_codecAsCodecSIHO();
     }
 
     inline aff3ct::module::Codec_HIHO<B,Q>* _codecAsCodecHIHO()
@@ -104,7 +128,13 @@ protected:
         return safeDynamicCast<aff3ct::module::Codec_HIHO<B,Q>>(this->_codecUPtr);
     }
 
+    inline const aff3ct::module::Codec_HIHO<B,Q>* _codecAsCodecHIHO() const
+    {
+        return const_cast<Class*>(this)->_codecAsCodecHIHO();
+    }
+
     void _workSISO();
     void _workSIHO();
     void _workHIHO();
+    void _setPortReserves() override;
 };

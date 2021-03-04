@@ -13,7 +13,8 @@ template <typename B, typename Q>
 AFF3CTCoderBase<B,Q>::AFF3CTCoderBase():
     _encoderParamsUPtr(nullptr),
     _decoderParamsUPtr(nullptr),
-    _codecUPtr(nullptr)
+    _codecUPtr(nullptr),
+    _blockStartID()
 {
     this->registerCall(this, POTHOS_FCN_TUPLE(Class, N));
     this->registerCall(this, POTHOS_FCN_TUPLE(Class, setN));
@@ -21,6 +22,8 @@ AFF3CTCoderBase<B,Q>::AFF3CTCoderBase():
     this->registerCall(this, POTHOS_FCN_TUPLE(Class, setK));
     this->registerCall(this, POTHOS_FCN_TUPLE(Class, systematic));
     this->registerCall(this, POTHOS_FCN_TUPLE(Class, setSystematic));
+    this->registerCall(this, POTHOS_FCN_TUPLE(Class, blockStartID));
+    this->registerCall(this, POTHOS_FCN_TUPLE(Class, setBlockStartID));
 }
 
 template <typename B, typename Q>
@@ -53,6 +56,7 @@ void AFF3CTCoderBase<B,Q>::setN(size_t N)
 
     _encoderParamsUPtr->N_cw = _decoderParamsUPtr->N_cw = int(N);
     this->_resetCodec();
+    this->_setPortReserves();
 }
 
 template <typename B, typename Q>
@@ -74,6 +78,7 @@ void AFF3CTCoderBase<B,Q>::setK(size_t K)
 
     _encoderParamsUPtr->K = _decoderParamsUPtr->K = int(K);
     this->_resetCodec();
+    this->_setPortReserves();
 }
 
 template <typename B, typename Q>
@@ -95,6 +100,35 @@ void AFF3CTCoderBase<B,Q>::setSystematic(bool systematic)
 
     _encoderParamsUPtr->systematic = _decoderParamsUPtr->systematic = systematic;
     this->_resetCodec();
+}
+
+template <typename B, typename Q>
+std::string AFF3CTCoderBase<B,Q>::blockStartID() const
+{
+    return _blockStartID;
+}
+
+template <typename B, typename Q>
+void AFF3CTCoderBase<B,Q>::setBlockStartID(const std::string& blockStartID)
+{
+    _blockStartID = blockStartID;
+}
+
+template <typename B, typename Q>
+void AFF3CTCoderBase<B,Q>::propagateLabels(const Pothos::InputPort* input)
+{
+    if(!_blockStartID.empty())
+    {
+        // Don't propagate input label.
+        for(const auto& label: input->labels())
+        {
+            if(label.id != _blockStartID)
+            {
+                for(auto* output: this->outputs()) output->postLabel(label);
+            }
+        }
+    }
+    else Pothos::Block::propagateLabels(input);
 }
 
 template <typename B, typename Q>
@@ -135,6 +169,49 @@ template <typename B, typename Q>
 void AFF3CTEncoder<B,Q>::work()
 {
     if(!_encoderPtr) throw Pothos::AssertionViolationException("Null _encoderPtr");
+
+    const auto inputSize = this->input(0)->elements();
+    const auto outputSize = this->output(0)->elements();
+    if((inputSize < this->K()) || (outputSize < this->N()))
+    {
+        return;
+    }
+
+    if(this->_blockStartID.empty()) this->_work();
+    else                            this->_blockIDWork();
+}
+
+// Assumptions:
+//  * Our block to encode starts at the beginning of the input buffer.
+//  * Both the input and output buffers are of sufficient size.
+template <typename B, typename Q>
+void AFF3CTEncoder<B,Q>::_work()
+{
+    auto input = this->input(0);
+    auto output = this->output(0);
+
+    assert(_encoderPtr);
+    assert(input->elements() >= this->K());
+    assert(output->elements() >= this->N());
+
+    _encoderPtr->encode(
+        input->buffer(),
+        output->buffer());
+
+    input->consume(this->K());
+    output->produce(this->N());
+}
+
+template <typename B, typename Q>
+void AFF3CTEncoder<B,Q>::_blockIDWork()
+{
+}
+
+template <typename B, typename Q>
+void AFF3CTEncoder<B,Q>::_setPortReserves()
+{
+    this->input(0)->setReserve(this->K());
+    this->output(0)->setReserve(this->N());
 }
 
 template class AFF3CTEncoder<B_8,Q_8>;
@@ -184,6 +261,7 @@ AFF3CTDecoder<B,Q>::~AFF3CTDecoder()
 {
 }
 
+// TODO: block ID check
 template <typename B, typename Q>
 void AFF3CTDecoder<B,Q>::work()
 {
@@ -206,19 +284,74 @@ void AFF3CTDecoder<B,Q>::work()
     }
 }
 
+// Assumptions:
+//  * Our block to decode starts at the beginning of the input buffer.
+//  * Both the input and output buffers are of sufficient size.
 template <typename B, typename Q>
 void AFF3CTDecoder<B,Q>::_workSISO()
 {
+    auto input = this->input(0);
+    auto output = this->output(0);
+
+    assert(_decoderSISOSPtr);
+    assert(input->elements() >= this->N());
+    assert(output->elements() >= this->K());
+
+    _decoderSISOSPtr->decode_siso(
+        input->buffer(),
+        output->buffer());
+
+    input->consume(this->N());
+    output->produce(this->K());
 }
 
+// Assumptions:
+//  * Our block to decode starts at the beginning of the input buffer.
+//  * Both the input and output buffers are of sufficient size.
 template <typename B, typename Q>
 void AFF3CTDecoder<B,Q>::_workSIHO()
 {
+    auto input = this->input(0);
+    auto output = this->output(0);
+
+    assert(_decoderSIHOSPtr);
+    assert(input->elements() >= this->N());
+    assert(output->elements() >= this->K());
+
+    _decoderSIHOSPtr->decode_siho(
+        input->buffer(),
+        output->buffer());
+
+    input->consume(this->N());
+    output->produce(this->K());
 }
 
+// Assumptions:
+//  * Our block to decode starts at the beginning of the input buffer.
+//  * Both the input and output buffers are of sufficient size.
 template <typename B, typename Q>
 void AFF3CTDecoder<B,Q>::_workHIHO()
 {
+    auto input = this->input(0);
+    auto output = this->output(0);
+
+    assert(!_decoderHIHOSPtr);
+    assert(input->elements() >= this->N());
+    assert(output->elements() >= this->K());
+
+    _decoderHIHOSPtr->decode_hiho(
+        input->buffer(),
+        output->buffer());
+
+    input->consume(this->N());
+    output->produce(this->K());
+}
+
+template <typename B, typename Q>
+void AFF3CTDecoder<B,Q>::_setPortReserves()
+{
+    this->input(0)->setReserve(this->N());
+    this->output(0)->setReserve(this->K());
 }
 
 template class AFF3CTDecoder<B_8,Q_8>;

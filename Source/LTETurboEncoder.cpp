@@ -140,6 +140,7 @@ class LTETurboEncoder: public Pothos::Block
                 _gen
             };
 
+            // TODO: using setReserve() on both input and output should avoid this situation, right?
             const bool mustPostBuffer = (calcOutputSize(inputSize) > this->workInfo().minOutElements);
 
             std::vector<Pothos::BufferChunk> outputBuffers;

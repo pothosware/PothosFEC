@@ -227,6 +227,7 @@ template <typename B, typename Q>
 AFF3CTDecoder<B,Q>::AFF3CTDecoder(AFF3CTDecoderType decoderType):
     AFF3CTCoderBase<B,Q>(),
     _decoderType(decoderType),
+    _decodeFcn(nullptr),
     _decoderSISOSPtr(nullptr),
     _decoderSIHOSPtr(nullptr),
     _decoderHIHOSPtr(nullptr)
@@ -239,16 +240,39 @@ AFF3CTDecoder<B,Q>::AFF3CTDecoder(AFF3CTDecoderType decoderType):
         case AFF3CTDecoderType::SISO:
             this->setupInput(0, QDType);
             this->setupOutput(0, QDType);
+            this->_decodeFcn = [this](const void* in, void* out) -> void
+            {
+                assert(_decoderSISOSPtr);
+                _decoderSISOSPtr->decode_siso(
+                    (const Q*)in,
+                    (Q*)out);
+            };
             break;
 
         case AFF3CTDecoderType::SIHO:
             this->setupInput(0, QDType);
             this->setupOutput(0, BDType);
+            /*
+            this->_decodeFcn = [this](const void* in, void* out) -> void
+            {
+                assert(_decoderSIHOSPtr);
+                _decoderSIHOSPtr->decode_siho(
+                    (const Q*)in,
+                    (B*)out);
+            };
+            */
             break;
 
         case AFF3CTDecoderType::HIHO:
             this->setupInput(0, BDType);
             this->setupOutput(0, BDType);
+            this->_decodeFcn = [this](const void* in, void* out) -> void
+            {
+                assert(_decoderHIHOSPtr);
+                _decoderHIHOSPtr->decode_hiho(
+                    (const B*)in,
+                    (B*)out);
+            };
             break;
 
         default:
@@ -261,85 +285,18 @@ AFF3CTDecoder<B,Q>::~AFF3CTDecoder()
 {
 }
 
-// TODO: block ID check
+// TODO: _work and _blockIDWork, check buffer sizes,etc here
 template <typename B, typename Q>
 void AFF3CTDecoder<B,Q>::work()
 {
-    switch(_decoderType)
-    {
-        case AFF3CTDecoderType::SISO:
-            this->_workSISO();
-            break;
-
-        case AFF3CTDecoderType::SIHO:
-            this->_workSIHO();
-            break;
-
-        case AFF3CTDecoderType::HIHO:
-            this->_workHIHO();
-            break;
-
-        default:
-            throw Pothos::AssertionViolationException("Invalid decoder type enum "+std::to_string(int(_decoderType)));
-    }
-}
-
-// Assumptions:
-//  * Our block to decode starts at the beginning of the input buffer.
-//  * Both the input and output buffers are of sufficient size.
-template <typename B, typename Q>
-void AFF3CTDecoder<B,Q>::_workSISO()
-{
     auto input = this->input(0);
     auto output = this->output(0);
 
-    assert(_decoderSISOSPtr);
+    assert(_decodeFcn);
     assert(input->elements() >= this->N());
     assert(output->elements() >= this->K());
 
-    _decoderSISOSPtr->decode_siso(
-        input->buffer(),
-        output->buffer());
-
-    input->consume(this->N());
-    output->produce(this->K());
-}
-
-// Assumptions:
-//  * Our block to decode starts at the beginning of the input buffer.
-//  * Both the input and output buffers are of sufficient size.
-template <typename B, typename Q>
-void AFF3CTDecoder<B,Q>::_workSIHO()
-{
-    auto input = this->input(0);
-    auto output = this->output(0);
-
-    assert(_decoderSIHOSPtr);
-    assert(input->elements() >= this->N());
-    assert(output->elements() >= this->K());
-
-    _decoderSIHOSPtr->decode_siho(
-        input->buffer(),
-        output->buffer());
-
-    input->consume(this->N());
-    output->produce(this->K());
-}
-
-// Assumptions:
-//  * Our block to decode starts at the beginning of the input buffer.
-//  * Both the input and output buffers are of sufficient size.
-template <typename B, typename Q>
-void AFF3CTDecoder<B,Q>::_workHIHO()
-{
-    auto input = this->input(0);
-    auto output = this->output(0);
-
-    assert(!_decoderHIHOSPtr);
-    assert(input->elements() >= this->N());
-    assert(output->elements() >= this->K());
-
-    _decoderHIHOSPtr->decode_hiho(
+    _decodeFcn(
         input->buffer(),
         output->buffer());
 

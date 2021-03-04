@@ -10,6 +10,7 @@
 #include <aff3ct.hpp>
 
 #include <cassert>
+#include <functional>
 #include <memory>
 
 enum class AFF3CTDecoderType
@@ -18,6 +19,8 @@ enum class AFF3CTDecoderType
     SIHO,
     HIHO
 };
+
+using DecodeFcn = std::function<void(const void*, void*)>;
 
 template <typename B, typename Q>
 using CodecUPtr = std::unique_ptr<aff3ct::module::Codec<B,Q>>;
@@ -95,6 +98,7 @@ public:
 
 protected:
     AFF3CTDecoderType _decoderType;
+    DecodeFcn _decodeFcn;
 
     std::shared_ptr<aff3ct::module::Decoder_SISO<Q>> _decoderSISOSPtr;
     std::shared_ptr<aff3ct::module::Decoder_SIHO<B>> _decoderSIHOSPtr;
@@ -133,8 +137,5 @@ protected:
         return const_cast<Class*>(this)->_codecAsCodecHIHO();
     }
 
-    void _workSISO();
-    void _workSIHO();
-    void _workHIHO();
     void _setPortReserves() override;
 };

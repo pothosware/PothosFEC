@@ -101,7 +101,7 @@ protected:
     DecodeFcn _decodeFcn;
 
     std::shared_ptr<aff3ct::module::Decoder_SISO<Q>> _decoderSISOSPtr;
-    std::shared_ptr<aff3ct::module::Decoder_SIHO<B>> _decoderSIHOSPtr;
+    std::shared_ptr<aff3ct::module::Decoder_SIHO<B,Q>> _decoderSIHOSPtr;
     std::shared_ptr<aff3ct::module::Decoder_HIHO<B>> _decoderHIHOSPtr;
 
     inline aff3ct::module::Codec_SISO<B,Q>* _codecAsCodecSISO()

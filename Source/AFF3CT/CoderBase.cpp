@@ -252,7 +252,6 @@ AFF3CTDecoder<B,Q>::AFF3CTDecoder(AFF3CTDecoderType decoderType):
         case AFF3CTDecoderType::SIHO:
             this->setupInput(0, QDType);
             this->setupOutput(0, BDType);
-            /*
             this->_decodeFcn = [this](const void* in, void* out) -> void
             {
                 assert(_decoderSIHOSPtr);
@@ -260,7 +259,6 @@ AFF3CTDecoder<B,Q>::AFF3CTDecoder(AFF3CTDecoderType decoderType):
                     (const Q*)in,
                     (B*)out);
             };
-            */
             break;
 
         case AFF3CTDecoderType::HIHO:
@@ -315,3 +313,4 @@ template class AFF3CTDecoder<B_8,Q_8>;
 template class AFF3CTDecoder<B_16,Q_16>;
 template class AFF3CTDecoder<B_32,Q_32>;
 template class AFF3CTDecoder<B_64,Q_64>;
+

@@ -1,4 +1,4 @@
-// Copyright (c) 2020 Nicholas Corgan
+// Copyright (c) 2020-2021 Nicholas Corgan
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
@@ -25,5 +25,11 @@ std::unique_ptr<aff3ct::module::Codec_polar<B,Q>> makePolarCodec(
     const aff3ct::factory::Decoder_polar       ::parameters &decoderParams,
     const aff3ct::factory::Puncturer_polar     ::parameters *puncturerParams = nullptr,
     aff3ct::module::CRC<B>* crc = nullptr);
+
+template <typename B, typename Q>
+std::unique_ptr<aff3ct::module::Codec_SIHO<B,Q>> makeRACodec(
+    const aff3ct::factory::Encoder_RA ::parameters &encParams,
+    const aff3ct::factory::Decoder_RA ::parameters &decParams,
+    const aff3ct::factory::Interleaver::parameters &itlParams);
 
 }

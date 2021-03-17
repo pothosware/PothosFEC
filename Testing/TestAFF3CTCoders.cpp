@@ -109,3 +109,31 @@ POTHOS_TEST_BLOCK("/fec/tests", test_ldpc_dvbs2_coders)
     testLDPCDVBS2Coders<std::int32_t>();
     testLDPCDVBS2Coders<std::int64_t>();
 }
+
+//
+// RA coders
+//
+
+template <typename T>
+static void testRACoders()
+{
+    const auto dtype = Pothos::DType(typeid(T));
+
+    std::cout << "Testing " << dtype.toString() << "..." << std::endl;
+
+    auto encoderBlock = Pothos::BlockRegistry::make(
+                            "/fec/ra_encoder",
+                            dtype);
+
+    auto decoderBlock = Pothos::BlockRegistry::make(
+                            "/fec/ra_decoder",
+                            dtype);
+}
+
+POTHOS_TEST_BLOCK("/fec/tests", test_ra_coders)
+{
+    testRACoders<std::int8_t>();
+    testRACoders<std::int16_t>();
+    testRACoders<std::int32_t>();
+    testRACoders<std::int64_t>();
+}

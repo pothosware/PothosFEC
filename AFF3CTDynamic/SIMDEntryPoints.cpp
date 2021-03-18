@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "BCHCodec.hpp"
+#include "CRCFactory.hpp"
 #include "LDPCCodec.hpp"
 #include "PolarCodec.hpp"
 #include "RACodec.hpp"
@@ -22,9 +23,9 @@ template <typename B, typename Q>
 std::unique_ptr<aff3ct::module::Codec_SISO_SIHO<B,Q>> makeLDPCCodec(
     const aff3ct::factory::Encoder_LDPC::parameters& encParams,
     const aff3ct::factory::Decoder_LDPC::parameters& decParams,
-    aff3ct::factory::Puncturer_LDPC::parameters* pctParams)
+    aff3ct::factory::Puncturer_LDPC::parameters* pPctParams)
 {
-    return std::unique_ptr<aff3ct::module::Codec_SISO_SIHO<B,Q>>(new LDPCCodec<B,Q>(encParams, decParams, pctParams));
+    return std::unique_ptr<aff3ct::module::Codec_SISO_SIHO<B,Q>>(new LDPCCodec<B,Q>(encParams, decParams, pPctParams));
 }
 
 template <typename B, typename Q>
@@ -32,10 +33,18 @@ std::unique_ptr<aff3ct::module::Codec_polar<B,Q>> makePolarCodec(
     const aff3ct::factory::Frozenbits_generator::parameters &frozenBitsParams,
     const aff3ct::factory::Encoder_polar       ::parameters &encoderParams,
     const aff3ct::factory::Decoder_polar       ::parameters &decoderParams,
-    const aff3ct::factory::Puncturer_polar     ::parameters *puncturerParams,
-    aff3ct::module::CRC<B>* crc)
+    const aff3ct::factory::CRC                 ::parameters &crcParams,
+    const aff3ct::factory::Puncturer_polar     ::parameters *pPuncturerParams,
+    std::unique_ptr<aff3ct::module::CRC<B>>& rCRCUPtr)
 {
-    return std::unique_ptr<aff3ct::module::Codec_polar<B,Q>>(new PolarCodec<B,Q>(frozenBitsParams, encoderParams, decoderParams, puncturerParams, crc));
+    rCRCUPtr.reset(CRCFactory::build<B>(crcParams));
+
+    return std::unique_ptr<aff3ct::module::Codec_polar<B,Q>>(new PolarCodec<B,Q>(
+        frozenBitsParams,
+        encoderParams,
+        decoderParams,
+        pPuncturerParams,
+        rCRCUPtr.get()));
 }
 
 template <typename B, typename Q>
@@ -62,8 +71,9 @@ std::unique_ptr<aff3ct::module::Codec_SIHO<B,Q>> makeRACodec(
         const aff3ct::factory::Frozenbits_generator::parameters&, \
         const aff3ct::factory::Encoder_polar       ::parameters&, \
         const aff3ct::factory::Decoder_polar       ::parameters&, \
+        const aff3ct::factory::CRC                 ::parameters&, \
         const aff3ct::factory::Puncturer_polar     ::parameters*, \
-        aff3ct::module::CRC<T1>*); \
+        std::unique_ptr<aff3ct::module::CRC<T1>>&); \
     template \
     std::unique_ptr<aff3ct::module::Codec_SIHO<T1,T2>> makeRACodec( \
         const aff3ct::factory::Encoder_RA::parameters&, \

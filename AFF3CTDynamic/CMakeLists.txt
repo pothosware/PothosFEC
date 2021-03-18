@@ -8,6 +8,8 @@ if(SIMD_SUPPORTED)
         BCHCodec.cpp
         BCHDecoder.cpp
         BCHDecoderFactory.cpp
+        CRCFactory.cpp
+        CRCPolynomialInter.cpp
         LDPCCodec.cpp
         LDPCDecoderBPHorizontalLayeredONMSInter.cpp
         LDPCDecoderFactory.cpp

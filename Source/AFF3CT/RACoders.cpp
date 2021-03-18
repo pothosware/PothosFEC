@@ -43,14 +43,14 @@ public:
 
     inline int size() const
     {
-        assert(!_paramsUPtr);
+        assert(_paramsUPtr);
 
         return _paramsUPtr->core->size;
     }
 
     void setSize(int size)
     {
-        assert(!_paramsUPtr);
+        assert(_paramsUPtr);
 
         _throwIfActiveCallback();
         _paramsUPtr->core->size = size;
@@ -59,7 +59,7 @@ public:
 
     inline std::string type() const
     {
-        assert(!_paramsUPtr);
+        assert(_paramsUPtr);
 
         return _paramsUPtr->core->type;
     }
@@ -67,7 +67,7 @@ public:
     // TODO: validate input
     void setType(const std::string& type)
     {
-        assert(!_paramsUPtr);
+        assert(_paramsUPtr);
 
         _throwIfActiveCallback();
         _paramsUPtr->core->type = type;
@@ -76,7 +76,7 @@ public:
 
     inline std::string path() const
     {
-        assert(!_paramsUPtr);
+        assert(_paramsUPtr);
 
         return _paramsUPtr->core->path;
     }
@@ -84,7 +84,7 @@ public:
     // TODO: validate input
     void setPath(const std::string& path)
     {
-        assert(!_paramsUPtr);
+        assert(_paramsUPtr);
 
         _throwIfActiveCallback();
         _paramsUPtr->core->path = path;
@@ -93,7 +93,7 @@ public:
 
     inline std::string readOrder() const
     {
-        assert(!_paramsUPtr);
+        assert(_paramsUPtr);
 
         return _paramsUPtr->core->read_order;
     }
@@ -101,7 +101,7 @@ public:
     // TODO: validate input
     void setReadOrder(const std::string& readOrder)
     {
-        assert(!_paramsUPtr);
+        assert(_paramsUPtr);
 
         _throwIfActiveCallback();
         _paramsUPtr->core->read_order = readOrder;
@@ -110,14 +110,14 @@ public:
 
     inline int numColumns() const
     {
-        assert(!_paramsUPtr);
+        assert(_paramsUPtr);
 
         return _paramsUPtr->core->n_cols;
     }
 
     void setNumColumns(int numColumns)
     {
-        assert(!_paramsUPtr);
+        assert(_paramsUPtr);
 
         _throwIfActiveCallback();
         _paramsUPtr->core->n_cols = numColumns;
@@ -126,14 +126,14 @@ public:
 
     inline int numFrames() const
     {
-        assert(!_paramsUPtr);
+        assert(_paramsUPtr);
 
         return _paramsUPtr->core->n_frames;
     }
 
     void setNumFrames(int numFrames)
     {
-        assert(!_paramsUPtr);
+        assert(_paramsUPtr);
 
         _throwIfActiveCallback();
         _paramsUPtr->core->n_frames = numFrames;
@@ -142,14 +142,14 @@ public:
 
     inline int seed() const
     {
-        assert(!_paramsUPtr);
+        assert(_paramsUPtr);
 
         return _paramsUPtr->core->seed;
     }
 
     void setSeed(int seed)
     {
-        assert(!_paramsUPtr);
+        assert(_paramsUPtr);
 
         _throwIfActiveCallback();
         _paramsUPtr->core->seed = seed;
@@ -158,14 +158,14 @@ public:
 
     inline bool uniform() const
     {
-        assert(!_paramsUPtr);
+        assert(_paramsUPtr);
 
         return _paramsUPtr->core->uniform;
     }
 
     void setUniform(bool uniform)
     {
-        assert(!_paramsUPtr);
+        assert(_paramsUPtr);
 
         _throwIfActiveCallback();
         _paramsUPtr->core->uniform = uniform;
@@ -268,7 +268,7 @@ protected:
 
     void _resetCodec() override
     {
-        assert(!this->isActive());
+        assert(this->isActive());
 
         this->_encoderPtr = nullptr;
         RAHelper<B,Q>::resetCodec(

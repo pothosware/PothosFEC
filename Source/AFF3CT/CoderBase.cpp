@@ -54,6 +54,7 @@ void AFF3CTCoderBase<B,Q>::setN(size_t N)
     assert(_decoderParamsUPtr);
     this->_throwIfBlockIsActive();
 
+    // TODO: is this the right N?
     _encoderParamsUPtr->N_cw = _decoderParamsUPtr->N_cw = int(N);
     this->_resetCodec();
     this->_setPortReserves();

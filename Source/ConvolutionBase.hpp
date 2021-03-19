@@ -59,7 +59,7 @@ protected:
 
     void _getEncodeSize();
 
-    void encoderWork();
+    void _encoderWork();
 
-    void decoderWork();
+    void _decoderWork();
 };

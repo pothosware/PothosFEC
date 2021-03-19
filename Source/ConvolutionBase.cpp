@@ -97,8 +97,8 @@ void ConvolutionBase::work()
 {
     Poco::FastMutex::ScopedLock lock(_convCodeMutex);
 
-    if(_isEncoder) this->encoderWork();
-    else           this->decoderWork();
+    if(_isEncoder) this->_encoderWork();
+    else           this->_decoderWork();
 }
 
 std::vector<unsigned> ConvolutionBase::_gen() const
@@ -173,7 +173,7 @@ void ConvolutionBase::_getEncodeSize()
     _expectedEncodeSize = encodeRet;
 }
 
-void ConvolutionBase::encoderWork()
+void ConvolutionBase::_encoderWork()
 {
     auto input = this->input(0);
     auto output = this->output(0);
@@ -204,7 +204,7 @@ void ConvolutionBase::encoderWork()
     output->produce(_expectedEncodeSize);
 }
 
-void ConvolutionBase::decoderWork()
+void ConvolutionBase::_decoderWork()
 {
     auto input = this->input(0);
     auto output = this->output(0);

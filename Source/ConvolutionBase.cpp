@@ -27,6 +27,8 @@ ConvolutionBase::ConvolutionBase(lte_conv_code* pConvCode, bool isEncoder):
     this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionBase, gen));
     this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionBase, puncture));
     this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionBase, terminationType));
+    this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionBase, blockStartID));
+    this->registerCall(this, POTHOS_FCN_TUPLE(ConvolutionBase, setBlockStartID));
 
     this->registerProbe("N");
     this->registerProbe("K");
@@ -93,12 +95,30 @@ std::string ConvolutionBase::terminationType() const
     return this->_terminationType();
 }
 
+std::string ConvolutionBase::blockStartID() const
+{
+    return _blockStartID;
+}
+
+void ConvolutionBase::setBlockStartID(const std::string& blockStartID)
+{
+    _blockStartID = blockStartID;
+}
+
 void ConvolutionBase::work()
 {
     Poco::FastMutex::ScopedLock lock(_convCodeMutex);
 
-    if(_isEncoder) this->_encoderWork();
-    else           this->_decoderWork();
+    if(_isEncoder)
+    {
+        if(_blockStartID.empty()) this->_encoderWork();
+        else                      this->_encoderBlockIDWork();
+    }
+    else
+    {
+        if(_blockStartID.empty()) this->_decoderWork();
+        else                      this->_decoderBlockIDWork();
+    }
 }
 
 std::vector<unsigned> ConvolutionBase::_gen() const
@@ -207,6 +227,45 @@ void ConvolutionBase::_encoderWork()
     output->produce(_expectedEncodeSize);
 }
 
+void ConvolutionBase::_encoderBlockIDWork()
+{
+    size_t inputSize = _pConvCode->len;
+
+    auto input = this->input(0);
+
+    bool blockFound = false;
+
+    for(const auto& label: input->labels())
+    {
+        // Skip if we haven't received enough data for this label.
+        if(label.index > inputSize) continue;
+
+        // Skip if this isn't a block start label.
+        if(label.id != _blockStartID) continue;
+
+        // Skip all data before the block starts.
+        if(0 != label.index)
+        {
+            input->consume(label.index);
+            input->setReserve(inputSize);
+            return;
+        }
+
+        // If our block starts at the beginning of our buffer, wait until we have
+        // enough data to encode.
+        if(input->elements() < inputSize)
+        {
+            input->setReserve(inputSize);
+            return;
+        }
+
+        blockFound = true;
+        break;
+    }
+
+    if(blockFound) this->_encoderWork();
+}
+
 void ConvolutionBase::_decoderWork()
 {
     auto input = this->input(0);
@@ -226,4 +285,48 @@ void ConvolutionBase::_decoderWork()
 
     input->consume(_expectedEncodeSize);
     output->produce(_pConvCode->len);
+}
+
+void ConvolutionBase::_decoderBlockIDWork()
+{
+    size_t inputSize = _expectedEncodeSize;
+
+    const auto& inputs = this->inputs();
+
+    bool blockFound = false;
+
+    // We take in three inputs, but input 0 is expected to have
+    // the block ID label.
+    for(const auto& label: inputs[0]->labels())
+    {
+        // Skip if we haven't received enough data for this label.
+        if(label.index > inputSize) continue;
+
+        // Skip if this isn't a block start label.
+        if(label.id != _blockStartID) continue;
+
+        // Skip all data before the block starts.
+        if(0 != label.index)
+        {
+            for(auto* input: inputs)
+            {
+                input->consume(label.index);
+                input->setReserve(inputSize);
+            }
+            return;
+        }
+
+        // If our block starts at the beginning of our buffer, wait until we have
+        // enough data to encode.
+        if(this->workInfo().minInElements < inputSize)
+        {
+            for(auto* input: inputs) input->setReserve(inputSize);
+            return;
+        }
+
+        blockFound = true;
+        break;
+    }
+
+    if(blockFound) this->_decoderWork();
 }

@@ -38,6 +38,10 @@ public:
 
     std::string terminationType() const;
 
+    std::string blockStartID() const;
+
+    void setBlockStartID(const std::string& blockStartID);
+
     void work() override;
 
 protected:
@@ -51,6 +55,8 @@ protected:
     std::vector<std::uint8_t> _expectedEncodeCalcInputVec;
     std::vector<std::uint8_t> _expectedEncodeCalcOutputVec;
 
+    std::string _blockStartID;
+
     std::vector<unsigned> _gen() const;
 
     std::vector<int> _punctureFunc() const;
@@ -60,6 +66,8 @@ protected:
     void _updatePortReserves();
 
     void _encoderWork();
+    void _encoderBlockIDWork();
 
     void _decoderWork();
+    void _decoderBlockIDWork();
 };

@@ -41,7 +41,7 @@ ConvolutionBase::~ConvolutionBase() {}
 
 void ConvolutionBase::activate()
 {
-    this->_getEncodeSize();
+    this->_updatePortReserves();
 }
 
 int ConvolutionBase::N() const
@@ -153,7 +153,7 @@ std::string ConvolutionBase::_terminationType() const
 // ideal, but the function *should* be fast enough so this isn't
 // noticeable, since it only happens on construction and when
 // a field is changed.
-void ConvolutionBase::_getEncodeSize()
+void ConvolutionBase::_updatePortReserves()
 {
     // Don't instantiate our test vectors each time.
     if(_expectedEncodeCalcInputVec.empty())
@@ -171,6 +171,9 @@ void ConvolutionBase::_getEncodeSize()
     throwOnErrCode(encodeRet);
 
     _expectedEncodeSize = encodeRet;
+
+    this->input(0)->setReserve(static_cast<size_t>(this->_isEncoder ? _pConvCode->len : _expectedEncodeSize));
+    this->output(0)->setReserve(static_cast<size_t>(this->_isEncoder ? _expectedEncodeSize :_pConvCode->len));
 }
 
 void ConvolutionBase::_encoderWork()

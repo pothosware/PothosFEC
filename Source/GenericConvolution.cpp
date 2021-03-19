@@ -73,12 +73,12 @@ public:
         try
         {
             this->_setN(n, &oldN);
-            this->_getEncodeSize();
+            this->_updatePortReserves();
         }
         catch(const Pothos::Exception& ex)
         {
             this->_setN(oldN);
-            this->_getEncodeSize();
+            this->_updatePortReserves();
             throw;
         }
 
@@ -98,12 +98,12 @@ public:
         try
         {
             this->_setK(k, &oldK);
-            this->_getEncodeSize();
+            this->_updatePortReserves();
         }
         catch(const Pothos::Exception& ex)
         {
             this->_setK(oldK);
-            this->_getEncodeSize();
+            this->_updatePortReserves();
             throw;
         }
 
@@ -123,12 +123,12 @@ public:
         try
         {
             this->_setLength(length, &oldLength);
-            this->_getEncodeSize();
+            this->_updatePortReserves();
         }
         catch(const Pothos::Exception& ex)
         {
             this->_setLength(oldLength);
-            this->_getEncodeSize();
+            this->_updatePortReserves();
             throw;
         }
 
@@ -159,12 +159,12 @@ public:
         try
         {
             this->_setRGen(rgen, &oldRGen);
-            this->_getEncodeSize();
+            this->_updatePortReserves();
         }
         catch(const Pothos::Exception& ex)
         {
             this->_setRGen(oldRGen);
-            this->_getEncodeSize();
+            this->_updatePortReserves();
             throw;
         }
 
@@ -190,12 +190,12 @@ public:
         try
         {
             this->_setGen(gen, &oldGen);
-            this->_getEncodeSize();
+            this->_updatePortReserves();
         }
         catch(const Pothos::Exception& ex)
         {
             this->_setGen(oldGen);
-            this->_getEncodeSize();
+            this->_updatePortReserves();
             throw;
         }
 
@@ -224,12 +224,12 @@ public:
         try
         {
             this->_setPuncture(puncture, &oldPuncture);
-            this->_getEncodeSize();
+            this->_updatePortReserves();
         }
         catch(const Pothos::Exception& ex)
         {
             this->_setPuncture(oldPuncture);
-            this->_getEncodeSize();
+            this->_updatePortReserves();
             throw;
         }
 
@@ -251,12 +251,12 @@ public:
         try
         {
             this->_setTerminationType(terminationType, &oldTerminationType);
-            this->_getEncodeSize();
+            this->_updatePortReserves();
         }
         catch(const Pothos::Exception& ex)
         {
             this->_setTerminationType(oldTerminationType);
-            this->_getEncodeSize();
+            this->_updatePortReserves();
             throw;
         }
 

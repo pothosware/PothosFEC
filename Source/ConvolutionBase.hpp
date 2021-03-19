@@ -57,7 +57,7 @@ protected:
 
     std::string _terminationType() const;
 
-    void _getEncodeSize();
+    void _updatePortReserves();
 
     void _encoderWork();
 

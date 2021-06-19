@@ -10,272 +10,230 @@
 #include <Pothos/Framework.hpp>
 
 #include <cassert>
-#include <functional>
 #include <string>
 
-using SetterCallback = std::function<void(void)>;
+//
+// Base class
+//
 
-class InterleaverParamsWrapper
+template <typename B, typename Q, typename BaseClass>
+class RACoder: public BaseClass
 {
 public:
-    InterleaverParamsWrapper() = delete;
-
-    InterleaverParamsWrapper(
-        const SetterCallback& throwIfActiveCallback,
-        const SetterCallback& resetCodecCallback
-    ):
-        _paramsUPtr(new aff3ct::factory::Interleaver::parameters),
-        _throwIfActiveCallback(throwIfActiveCallback),
-        _resetCodecCallback(resetCodecCallback)
-    {}
-
-    virtual ~InterleaverParamsWrapper() = default;
-
-    inline void reset()
-    {
-        _paramsUPtr.reset(new aff3ct::factory::Interleaver::parameters);
-    }
-
-    inline const aff3ct::factory::Interleaver::parameters& params() const
-    {
-        return *_paramsUPtr;
-    }
-
-    inline int size() const
-    {
-        assert(_paramsUPtr);
-
-        return _paramsUPtr->core->size;
-    }
-
-    void setSize(int size)
-    {
-        assert(_paramsUPtr);
-
-        _throwIfActiveCallback();
-        _paramsUPtr->core->size = size;
-        _resetCodecCallback();
-    }
-
-    inline std::string type() const
-    {
-        assert(_paramsUPtr);
-
-        return _paramsUPtr->core->type;
-    }
-
-    // TODO: validate input
-    void setType(const std::string& type)
-    {
-        assert(_paramsUPtr);
-
-        _throwIfActiveCallback();
-        _paramsUPtr->core->type = type;
-        _resetCodecCallback();
-    }
-
-    inline std::string path() const
-    {
-        assert(_paramsUPtr);
-
-        return _paramsUPtr->core->path;
-    }
-
-    // TODO: validate input
-    void setPath(const std::string& path)
-    {
-        assert(_paramsUPtr);
-
-        _throwIfActiveCallback();
-        _paramsUPtr->core->path = path;
-        _resetCodecCallback();
-    }
-
-    inline std::string readOrder() const
-    {
-        assert(_paramsUPtr);
-
-        return _paramsUPtr->core->read_order;
-    }
-
-    // TODO: validate input
-    void setReadOrder(const std::string& readOrder)
-    {
-        assert(_paramsUPtr);
-
-        _throwIfActiveCallback();
-        _paramsUPtr->core->read_order = readOrder;
-        _resetCodecCallback();
-    }
-
-    inline int numColumns() const
-    {
-        assert(_paramsUPtr);
-
-        return _paramsUPtr->core->n_cols;
-    }
-
-    void setNumColumns(int numColumns)
-    {
-        assert(_paramsUPtr);
-
-        _throwIfActiveCallback();
-        _paramsUPtr->core->n_cols = numColumns;
-        _resetCodecCallback();
-    }
-
-    inline int numFrames() const
-    {
-        assert(_paramsUPtr);
-
-        return _paramsUPtr->core->n_frames;
-    }
-
-    void setNumFrames(int numFrames)
-    {
-        assert(_paramsUPtr);
-
-        _throwIfActiveCallback();
-        _paramsUPtr->core->n_frames = numFrames;
-        _resetCodecCallback();
-    }
-
-    inline int seed() const
-    {
-        assert(_paramsUPtr);
-
-        return _paramsUPtr->core->seed;
-    }
-
-    void setSeed(int seed)
-    {
-        assert(_paramsUPtr);
-
-        _throwIfActiveCallback();
-        _paramsUPtr->core->seed = seed;
-        _resetCodecCallback();
-    }
-
-    inline bool uniform() const
-    {
-        assert(_paramsUPtr);
-
-        return _paramsUPtr->core->uniform;
-    }
-
-    void setUniform(bool uniform)
-    {
-        assert(_paramsUPtr);
-
-        _throwIfActiveCallback();
-        _paramsUPtr->core->uniform = uniform;
-        _resetCodecCallback();
-    }
-
-private:
-
-    std::unique_ptr<aff3ct::factory::Interleaver::parameters> _paramsUPtr;
-    SetterCallback _throwIfActiveCallback;
-    SetterCallback _resetCodecCallback;
-};
-
-//
-// Helper class
-//
-
-template <typename B, typename Q>
-struct RAHelper
-{
+    using Class = RACoder<B,Q,BaseClass>;
     using EncoderParamType = aff3ct::factory::Encoder_RA::parameters;
     using DecoderParamType = aff3ct::factory::Decoder_RA::parameters;
 
-    static void initCoderParams(
-        std::unique_ptr<aff3ct::factory::Encoder::parameters>& rEncoderParamsUPtr,
-        std::unique_ptr<aff3ct::factory::Decoder::parameters>& rDecoderParamsUPtr,
-        InterleaverParamsWrapper& rInterleaverParamsWrapper)
+    RACoder(): BaseClass()
     {
-        rEncoderParamsUPtr.reset(new EncoderParamType);
-        rDecoderParamsUPtr.reset(new DecoderParamType);
-        rInterleaverParamsWrapper.reset();
+        _ctorCommon();
     }
 
-    static void resetCodec(
-        const std::unique_ptr<aff3ct::factory::Encoder::parameters>& encoderParamsUPtr,
-        const std::unique_ptr<aff3ct::factory::Decoder::parameters>& decoderParamsUPtr,
-        const InterleaverParamsWrapper& interleaverParamsWrapper,
-        std::unique_ptr<aff3ct::module::Codec<B,Q>>& rCodecUPtr)
+    RACoder(AFF3CTDecoderType type): BaseClass(type)
     {
-        assert(encoderParamsUPtr);
-        assert(decoderParamsUPtr);
+        _ctorCommon();
+    }
 
-        rCodecUPtr = AFF3CTDynamic::makeRACodec<B,Q>(
-                         *safeDynamicCast<EncoderParamType>(encoderParamsUPtr),
-                         *safeDynamicCast<DecoderParamType>(decoderParamsUPtr),
-                         interleaverParamsWrapper.params());
-        assert(rCodecUPtr);
+    virtual ~RACoder() = default;
+
+    int interleaverSize() const
+    {
+        assert(_interleaverParamsUPtr);
+
+        return _interleaverParamsUPtr->core->size;
+    }
+
+    void setInterleaverSize(int size)
+    {
+        assert(_interleaverParamsUPtr);
+
+        this->_throwIfBlockIsActive();
+        _interleaverParamsUPtr->core->size = size;
+        this->_resetCodec();
+    }
+
+    std::string interleaverType() const
+    {
+        assert(_interleaverParamsUPtr);
+
+        return _interleaverParamsUPtr->core->type;
+    }
+
+    // TODO: validate input
+    void setInterleaverType(const std::string& type)
+    {
+        assert(_interleaverParamsUPtr);
+
+        this->_throwIfBlockIsActive();
+        _interleaverParamsUPtr->core->type = type;
+        this->_resetCodec();
+    }
+
+    std::string interleaverPath() const
+    {
+        assert(_interleaverParamsUPtr);
+
+        return _interleaverParamsUPtr->core->path;
+    }
+
+    // TODO: validate input
+    void setInterleaverPath(const std::string& path)
+    {
+        assert(_interleaverParamsUPtr);
+
+        this->_throwIfBlockIsActive();
+        _interleaverParamsUPtr->core->path = path;
+        this->_resetCodec();
+    }
+
+    std::string interleaverReadOrder() const
+    {
+        assert(_interleaverParamsUPtr);
+
+        return _interleaverParamsUPtr->core->read_order;
+    }
+
+    // TODO: validate input
+    void setInterleaverReadOrder(const std::string& readOrder)
+    {
+        assert(_interleaverParamsUPtr);
+
+        this->_throwIfBlockIsActive();
+        _interleaverParamsUPtr->core->read_order = readOrder;
+        this->_resetCodec();
+    }
+
+    int interleaverNumColumns() const
+    {
+        assert(_interleaverParamsUPtr);
+
+        return _interleaverParamsUPtr->core->n_cols;
+    }
+
+    void setInterleaverNumColumns(int numColumns)
+    {
+        assert(_interleaverParamsUPtr);
+
+        this->_throwIfBlockIsActive();
+        _interleaverParamsUPtr->core->n_cols = numColumns;
+        this->_resetCodec();
+    }
+
+    int interleaverNumFrames() const
+    {
+        assert(_interleaverParamsUPtr);
+
+        return _interleaverParamsUPtr->core->n_frames;
+    }
+
+    void setInterleaverNumFrames(int numFrames)
+    {
+        assert(_interleaverParamsUPtr);
+
+        this->_throwIfBlockIsActive();
+        _interleaverParamsUPtr->core->n_frames = numFrames;
+        this->_resetCodec();
+    }
+
+    int interleaverSeed() const
+    {
+        assert(_interleaverParamsUPtr);
+
+        return _interleaverParamsUPtr->core->seed;
+    }
+
+    void setInterleaverSeed(int seed)
+    {
+        assert(_interleaverParamsUPtr);
+
+        this->_throwIfBlockIsActive();
+        _interleaverParamsUPtr->core->seed = seed;
+        this->_resetCodec();
+    }
+
+    bool interleaverUniform() const
+    {
+        assert(_interleaverParamsUPtr);
+
+        return _interleaverParamsUPtr->core->uniform;
+    }
+
+    void setInterleaverUniform(bool uniform)
+    {
+        assert(_interleaverParamsUPtr);
+
+        this->_throwIfBlockIsActive();
+        _interleaverParamsUPtr->core->uniform = uniform;
+        this->_resetCodec();
+    }
+
+protected:
+    std::unique_ptr<aff3ct::factory::Interleaver::parameters> _interleaverParamsUPtr;
+
+    void _resetCodec() override
+    {
+        assert(!this->isActive());
+        assert(this->_encoderParamsUPtr);
+        assert(this->_decoderParamsUPtr);
+        assert(this->_interleaverParamsUPtr);
+
+        this->_codecUPtr = AFF3CTDynamic::makeRACodec<B,Q>(
+                               *safeDynamicCast<EncoderParamType>(this->_encoderParamsUPtr),
+                               *safeDynamicCast<DecoderParamType>(this->_decoderParamsUPtr),
+                               *this->_interleaverParamsUPtr);
+        assert(this->_codecUPtr);
+    }
+
+private:
+    void _ctorCommon()
+    {
+        this->_encoderParamsUPtr.reset(new EncoderParamType);
+        this->_decoderParamsUPtr.reset(new DecoderParamType);
+        this->_interleaverParamsUPtr.reset(new aff3ct::factory::Interleaver::parameters);
+
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, interleaverSize));
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setInterleaverSize));
+
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, interleaverType));
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setInterleaverType));
+
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, interleaverPath));
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setInterleaverPath));
+
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, interleaverReadOrder));
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setInterleaverReadOrder));
+
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, interleaverNumColumns));
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setInterleaverNumColumns));
+
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, interleaverNumFrames));
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setInterleaverNumFrames));
+
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, interleaverSeed));
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setInterleaverSeed));
+
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, interleaverUniform));
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setInterleaverUniform));
     }
 };
-
-#define REGISTER_INTERLEAVER_CALL(name, fcn) \
-    this->registerCall(&this->_interleaverParamsWrapper, name, &InterleaverParamsWrapper::fcn)
-
-#define REGISTER_INTERLEAVER_CALLS() \
-    REGISTER_INTERLEAVER_CALL("interleaverSize", size); \
-    REGISTER_INTERLEAVER_CALL("setInterleaverSize", setSize); \
-    REGISTER_INTERLEAVER_CALL("interleaverType", type); \
-    REGISTER_INTERLEAVER_CALL("setInterleaverType", setType); \
-    REGISTER_INTERLEAVER_CALL("interleaverPath", path); \
-    REGISTER_INTERLEAVER_CALL("setInterleaverPath", setPath); \
-    REGISTER_INTERLEAVER_CALL("interleaverReadOrder", readOrder); \
-    REGISTER_INTERLEAVER_CALL("setInterleaverReadOrder", setReadOrder); \
-    REGISTER_INTERLEAVER_CALL("interleaverNumColumns", numColumns); \
-    REGISTER_INTERLEAVER_CALL("setInterleaverNumColumns", setNumColumns); \
-    REGISTER_INTERLEAVER_CALL("interleaverNumFrames", numFrames); \
-    REGISTER_INTERLEAVER_CALL("setInterleaverNumFrames", setNumFrames); \
-    REGISTER_INTERLEAVER_CALL("interleaverSeed", seed); \
-    REGISTER_INTERLEAVER_CALL("setInterleaverSeed", setSeed); \
-    REGISTER_INTERLEAVER_CALL("interleaverUniform", uniform); \
-    REGISTER_INTERLEAVER_CALL("setInterleaverUniform", setUniform);
 
 //
 // Encoder
 //
 
 template <typename B, typename Q>
-class RAEncoder: public AFF3CTEncoder<B,Q>
+class RAEncoder: public RACoder<B,Q,AFF3CTEncoder<B,Q>>
 {
 public:
-    using Class = RAEncoder<B,Q>;
+    using BaseClass = RACoder<B,Q,AFF3CTEncoder<B,Q>>;
 
-    RAEncoder():
-        AFF3CTEncoder<B,Q>(),
-        _interleaverParamsWrapper(
-            [this](){this->_throwIfBlockIsActive();},
-            [this](){this->_resetCodec();})
-    {
-        RAHelper<B,Q>::initCoderParams(
-            this->_encoderParamsUPtr,
-            this->_decoderParamsUPtr,
-            this->_interleaverParamsWrapper);
+    RAEncoder(): BaseClass(){}
+    virtual ~RAEncoder() = default;;
 
-        REGISTER_INTERLEAVER_CALLS();
-    }
-
-    virtual ~RAEncoder() = default;
-
-protected:
-    InterleaverParamsWrapper _interleaverParamsWrapper;
-
+private:
     void _resetCodec() override
     {
-        assert(this->isActive());
-
-        this->_encoderPtr = nullptr;
-        RAHelper<B,Q>::resetCodec(
-            this->_encoderParamsUPtr,
-            this->_decoderParamsUPtr,
-            this->_interleaverParamsWrapper,
-            this->_codecUPtr);
+        BaseClass::_resetCodec();
 
         this->_encoderPtr = this->_codecUPtr->get_encoder().get();
         assert(this->_encoderPtr);
@@ -286,27 +244,16 @@ protected:
 // Decoder
 //
 
-
 template <typename B, typename Q>
-class RADecoder: public AFF3CTDecoder<B,Q>
+class RADecoder: public RACoder<B,Q,AFF3CTDecoder<B,Q>>
 {
 public:
     using Class = RADecoder<B,Q>;
-    using DecoderParamType = typename RAHelper<B,Q>::DecoderParamType;
+    using BaseClass = RACoder<B,Q,AFF3CTDecoder<B,Q>>;
+    using DecoderParamType = typename BaseClass::DecoderParamType;
 
-    RADecoder():
-        AFF3CTDecoder<B,Q>(AFF3CTDecoderType::SIHO),
-        _interleaverParamsWrapper(
-            [this](){this->_throwIfBlockIsActive();},
-            [this](){this->_resetCodec();})
+    RADecoder(): BaseClass(AFF3CTDecoderType::SIHO)
     {
-        RAHelper<B,Q>::initCoderParams(
-            this->_encoderParamsUPtr,
-            this->_decoderParamsUPtr,
-            this->_interleaverParamsWrapper);
-
-        REGISTER_INTERLEAVER_CALLS();
-
         this->registerCall(this, POTHOS_FCN_TUPLE(Class, numIterations));
         this->registerCall(this, POTHOS_FCN_TUPLE(Class, setNumIterations));
     }
@@ -334,21 +281,13 @@ public:
         this->_resetCodec();
     }
 
-protected:
-    InterleaverParamsWrapper _interleaverParamsWrapper;
-
+private:
     void _resetCodec() override
     {
-        assert(!this->isActive());
-
-        this->_decoderSIHOSPtr.reset();
-        RAHelper<B,Q>::resetCodec(
-            this->_encoderParamsUPtr,
-            this->_decoderParamsUPtr,
-            this->_interleaverParamsWrapper,
-            this->_codecUPtr);
+        BaseClass::_resetCodec();
 
         this->_decoderSIHOSPtr = this->_codecAsCodecSIHO()->get_decoder_siho();
+        assert(this->_decoderSIHOSPtr);
     }
 };
 

@@ -34,15 +34,17 @@ std::unique_ptr<aff3ct::module::Codec_polar<B,Q>> makePolarCodec(
     const aff3ct::factory::Encoder_polar       ::parameters &encoderParams,
     const aff3ct::factory::Decoder_polar       ::parameters &decoderParams,
     const aff3ct::factory::CRC                 ::parameters *pCRCParams,
-    const aff3ct::factory::Puncturer_polar     ::parameters *pPuncturerParams)
+    const aff3ct::factory::Puncturer_polar     ::parameters *pPuncturerParams,
+    std::unique_ptr<aff3ct::module::CRC<B>>                 &rCRCUPtr)
 {
-    std::unique_ptr<aff3ct::module::CRC<B>> crcUPtr(pCRCParams ? CRCFactory::build<B>(*pCRCParams) : nullptr);
+    rCRCUPtr.reset(pCRCParams ? CRCFactory::build<B>(*pCRCParams) : nullptr);
 
     return std::unique_ptr<aff3ct::module::Codec_polar<B,Q>>(new PolarCodec<B,Q>(
         frozenBitsParams,
         encoderParams,
         decoderParams,
-        pPuncturerParams));
+        pPuncturerParams,
+        rCRCUPtr.get()));
 }
 
 template <typename B, typename Q>
@@ -70,7 +72,8 @@ std::unique_ptr<aff3ct::module::Codec_SIHO<B,Q>> makeRACodec(
         const aff3ct::factory::Encoder_polar       ::parameters&, \
         const aff3ct::factory::Decoder_polar       ::parameters&, \
         const aff3ct::factory::CRC                 ::parameters*, \
-        const aff3ct::factory::Puncturer_polar     ::parameters*); \
+        const aff3ct::factory::Puncturer_polar     ::parameters*, \
+        std::unique_ptr<aff3ct::module::CRC<T1>>&); \
     template \
     std::unique_ptr<aff3ct::module::Codec_SIHO<T1,T2>> makeRACodec( \
         const aff3ct::factory::Encoder_RA::parameters&, \

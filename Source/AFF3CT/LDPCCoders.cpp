@@ -53,36 +53,40 @@ struct LDPCHelper
 };
 
 //
-// Encoder
+// Base class
 //
 
-template <typename B, typename Q, bool dvbs2>
-class LDPCEncoder: public AFF3CTEncoder<B,Q>
+// TODO: N vs N_cw?
+template <typename B, typename Q, typename BaseClass, bool dvbs2>
+class LDPCCoder: public BaseClass
 {
 public:
-    using Class = LDPCEncoder<B,Q,dvbs2>;
+    using Class = LDPCCoder<B,Q,BaseClass,dvbs2>;
     using EncoderParamType = typename LDPCHelper<B,Q>::EncoderParamType;
     using DecoderParamType = typename LDPCHelper<B,Q>::DecoderParamType;
     using PuncturerParamType = typename LDPCHelper<B,Q>::PuncturerParamType;
 
-    LDPCEncoder(): AFF3CTEncoder<B,Q>()
+    LDPCCoder(): BaseClass(), _usePuncturer(true)
     {
-        LDPCHelper<B,Q>::initCoderParams(this->_encoderParamsUPtr, this->_decoderParamsUPtr);
-
-        this->_encoderParamsUPtr->type = dvbs2 ? "LDPC_DVBS2" : "LDPC";
-        this->_decoderParamsUPtr->type = dvbs2 ? "LDPC_DVBS2" : "LDPC";
-
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, puncturePattern));
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setPuncturePattern));
-
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, GMatrixPath));
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setGMatrixPath));
-
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, HMatrixPath));
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setHMatrixPath));
+        _ctorCommon();
     }
 
-    virtual ~LDPCEncoder() = default;
+    LDPCCoder(AFF3CTDecoderType type): BaseClass(type), _usePuncturer(true)
+    {
+        _ctorCommon();
+    }
+
+    bool usePuncturer() const
+    {
+        return _usePuncturer;
+    }
+
+    void setUsePuncturer(bool usePuncturer)
+    {
+        this->_throwIfBlockIsActive();
+        _usePuncturer = usePuncturer;
+        this->_resetCodec();
+    }
 
     void setN(size_t N) override
     {
@@ -169,19 +173,63 @@ public:
     }
 
 protected:
-
-    PuncturerParamType _puncturerParams;
-
     void _resetCodec() override
     {
         assert(!this->isActive());
+        assert(this->_encoderParamsUPtr);
+        assert(this->_decoderParamsUPtr);
 
-        this->_encoderPtr = nullptr;
-        LDPCHelper<B,Q>::resetCodec(
-            this->_encoderParamsUPtr,
-            this->_decoderParamsUPtr,
-            &_puncturerParams,
-            this->_codecUPtr);
+        auto* puncturerParamsPtr = _usePuncturer ? &this->_puncturerParams : nullptr;
+        this->_codecUPtr = AFF3CTDynamic::makeLDPCCodec<B,Q>(
+                               *safeDynamicCast<EncoderParamType>(this->_encoderParamsUPtr),
+                               *safeDynamicCast<DecoderParamType>(this->_decoderParamsUPtr),
+                               puncturerParamsPtr);
+        assert(this->_codecUPtr);
+    }
+
+private:
+    bool _usePuncturer;
+    PuncturerParamType _puncturerParams;
+
+    void _ctorCommon()
+    {
+        this->_encoderParamsUPtr.reset(new EncoderParamType);
+        this->_decoderParamsUPtr.reset(new DecoderParamType);
+
+        this->_encoderParamsUPtr->type = dvbs2 ? "LDPC_DVBS2" : "LDPC";
+        this->_decoderParamsUPtr->type = dvbs2 ? "LDPC_DVBS2" : "LDPC";
+
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, usePuncturer));
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setUsePuncturer));
+
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, puncturePattern));
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setPuncturePattern));
+
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, GMatrixPath));
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setGMatrixPath));
+
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, HMatrixPath));
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setHMatrixPath));
+    }
+};
+
+//
+// Encoder
+//
+
+template <typename B, typename Q, bool dvbs2>
+class LDPCEncoder: public LDPCCoder<B, Q, AFF3CTEncoder<B,Q>, dvbs2>
+{
+public:
+    using BaseClass = LDPCCoder<B, Q, AFF3CTEncoder<B,Q>, dvbs2>;
+
+    LDPCEncoder(): BaseClass(){}
+    virtual ~LDPCEncoder() = default;
+
+private:
+    void _resetCodec() override
+    {
+        BaseClass::_resetCodec();
 
         this->_encoderPtr = this->_codecUPtr->get_encoder().get();
         assert(this->_encoderPtr);
@@ -193,136 +241,29 @@ protected:
 //
 
 template <typename B, typename Q, bool dvbs2, bool siho>
-class LDPCDecoder: public AFF3CTDecoder<B,Q>
+class LDPCDecoder: public LDPCCoder<B, Q, AFF3CTDecoder<B,Q>, dvbs2>
 {
 public:
-    using Class = LDPCDecoder<B,Q,dvbs2,siho>;
-    using EncoderParamType = typename LDPCHelper<B,Q>::EncoderParamType;
-    using DecoderParamType = typename LDPCHelper<B,Q>::DecoderParamType;
-    using PuncturerParamType = typename LDPCHelper<B,Q>::PuncturerParamType;
+    using BaseClass = LDPCCoder<B, Q, AFF3CTDecoder<B,Q>, dvbs2>;
 
-    LDPCDecoder():
-        AFF3CTDecoder<B,Q>(siho ? AFF3CTDecoderType::SIHO : AFF3CTDecoderType::SISO)
-    {
-        LDPCHelper<B,Q>::initCoderParams(this->_encoderParamsUPtr, this->_decoderParamsUPtr);
-
-        this->_encoderParamsUPtr->type = dvbs2 ? "LDPC_DVBS2" : "LDPC";
-        this->_decoderParamsUPtr->type = dvbs2 ? "LDPC_DVBS2" : "LDPC";
-
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, puncturePattern));
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setPuncturePattern));
-
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, GMatrixPath));
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setGMatrixPath));
-
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, HMatrixPath));
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setHMatrixPath));
-    }
-
+    LDPCDecoder(): BaseClass(siho ? AFF3CTDecoderType::SIHO : AFF3CTDecoderType::SISO){}
     virtual ~LDPCDecoder() = default;
 
-    void setN(size_t N) override
-    {
-        assert(this->_encoderParamsUPtr);
-        assert(this->_decoderParamsUPtr);
-        this->_throwIfBlockIsActive();
-
-        this->_encoderParamsUPtr->N_cw = this->_decoderParamsUPtr->N_cw = N;
-        this->_puncturerParams.N = this->_puncturerParams.N_cw = N;
-        this->_resetCodec();
-    }
-
-    void setK(size_t K) override
-    {
-        assert(this->_encoderParamsUPtr);
-        assert(this->_decoderParamsUPtr);
-        this->_throwIfBlockIsActive();
-
-        this->_encoderParamsUPtr->K = this->_decoderParamsUPtr->K = K;
-        this->_puncturerParams.K = K;
-        this->_resetCodec();
-    }
-
-    std::vector<bool> puncturePattern() const
-    {
-        return this->_puncturerParams.pattern;
-    }
-
-    void setPuncturePattern(const std::vector<bool>& puncturePattern)
-    {
-        assert(this->_encoderParamsUPtr);
-        assert(this->_decoderParamsUPtr);
-        this->_throwIfBlockIsActive();
-
-        this->_puncturerParams.pattern = puncturePattern;
-        this->_resetCodec();
-    }
-
-    std::string GMatrixPath() const
-    {
-        assert(this->_encoderParamsUPtr);
-
-        return safeDynamicCast<EncoderParamType>(this->_encoderParamsUPtr)->G_path;
-    }
-
-    void setGMatrixPath(const std::string& path)
-    {
-        if(!Poco::File(path).exists())
-        {
-            throw Pothos::FileNotFoundException(path);
-        }
-
-        assert(this->_encoderParamsUPtr);
-        this->_throwIfBlockIsActive();
-
-        safeDynamicCast<EncoderParamType>(this->_encoderParamsUPtr)->G_path = path;
-        this->_resetCodec();
-    }
-
-    std::string HMatrixPath() const
-    {
-        assert(this->_encoderParamsUPtr);
-        assert(this->_decoderParamsUPtr);
-        assert(safeDynamicCast<EncoderParamType>(this->_encoderParamsUPtr)->H_path ==
-               safeDynamicCast<DecoderParamType>(this->_decoderParamsUPtr)->H_path);
-
-        return safeDynamicCast<EncoderParamType>(this->_encoderParamsUPtr)->H_path;
-    }
-
-    void setHMatrixPath(const std::string& path)
-    {
-        if(!Poco::File(path).exists())
-        {
-            throw Pothos::FileNotFoundException(path);
-        }
-
-        assert(this->_encoderParamsUPtr);
-        assert(this->_decoderParamsUPtr);
-        this->_throwIfBlockIsActive();
-
-        safeDynamicCast<EncoderParamType>(this->_encoderParamsUPtr)->H_path = path;
-        safeDynamicCast<DecoderParamType>(this->_decoderParamsUPtr)->H_path = path;
-        this->_resetCodec();
-    }
-
-protected:
-
-    PuncturerParamType _puncturerParams;
-
+private:
     void _resetCodec() override
     {
-        assert(!this->isActive());
+        BaseClass::_resetCodec();
 
-        this->_decoderSISOSPtr.reset();
-        this->_decoderSIHOSPtr.reset();
-        LDPCHelper<B,Q>::resetCodec(
-            this->_encoderParamsUPtr,
-            this->_decoderParamsUPtr,
-            &_puncturerParams,
-            this->_codecUPtr);
-
-        if(siho) this->_decoderSIHOSPtr = this->_codecAsCodecSIHO()->get_decoder_siho();
-        else     this->_decoderSISOSPtr = this->_codecAsCodecSISO()->get_decoder_siso();
+        if(siho)
+        {
+            this->_decoderSIHOSPtr = this->_codecAsCodecSIHO()->get_decoder_siho();
+            assert(this->_decoderSIHOSPtr);
+        }
+        else
+        {
+            this->_decoderSISOSPtr = this->_codecAsCodecSISO()->get_decoder_siso();
+            assert(this->_decoderSISOSPtr);
+        }
     }
 };
 

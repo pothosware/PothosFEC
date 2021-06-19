@@ -11,37 +11,50 @@
 
 #include <cassert>
 #include <string>
+#include <type_traits>
 
 //
-// Helper class
+// Base class
 //
 
-template <typename B, typename Q>
-struct BCHHelper
+template <typename B, typename Q, typename BaseClass>
+class BCHCoder: public BaseClass
 {
+public:
+    using Class = BCHCoder<B, Q, BaseClass>;
     using EncoderParamType = aff3ct::factory::Encoder_BCH::parameters;
     using DecoderParamType = aff3ct::factory::Decoder_BCH::parameters;
 
-    static void initCoderParams(
-        std::unique_ptr<aff3ct::factory::Encoder::parameters>& rEncoderParamsUPtr,
-        std::unique_ptr<aff3ct::factory::Decoder::parameters>& rDecoderParamsUPtr)
+    BCHCoder(): BaseClass()
     {
-        rEncoderParamsUPtr.reset(new EncoderParamType);
-        rDecoderParamsUPtr.reset(new DecoderParamType);
+        _ctorCommon();
     }
 
-    static void resetCodec(
-        const std::unique_ptr<aff3ct::factory::Encoder::parameters>& encoderParamsUPtr,
-        const std::unique_ptr<aff3ct::factory::Decoder::parameters>& decoderParamsUPtr,
-        std::unique_ptr<aff3ct::module::Codec<B,Q>>& rCodecUPtr)
+    BCHCoder(AFF3CTDecoderType type): BaseClass(type)
     {
-        assert(encoderParamsUPtr);
-        assert(decoderParamsUPtr);
+        _ctorCommon();
+    }
 
-        rCodecUPtr = AFF3CTDynamic::makeBCHCodec<B,Q>(
-                         *safeDynamicCast<EncoderParamType>(encoderParamsUPtr),
-                         *safeDynamicCast<DecoderParamType>(decoderParamsUPtr));
-        assert(rCodecUPtr);
+    virtual ~BCHCoder() = default;
+
+protected:
+    void _resetCodec() override
+    {
+        assert(!this->isActive());
+        assert(this->_encoderParamsUPtr);
+        assert(this->_decoderParamsUPtr);
+
+        this->_codecUPtr = AFF3CTDynamic::makeBCHCodec<B,Q>(
+                               *safeDynamicCast<EncoderParamType>(this->_encoderParamsUPtr),
+                               *safeDynamicCast<DecoderParamType>(this->_decoderParamsUPtr));
+        assert(this->_codecUPtr);
+    }
+
+private:
+    void _ctorCommon()
+    {
+        this->_encoderParamsUPtr.reset(new EncoderParamType);
+        this->_decoderParamsUPtr.reset(new DecoderParamType);
     }
 };
 
@@ -50,28 +63,20 @@ struct BCHHelper
 //
 
 template <typename B, typename Q>
-class BCHEncoder: public AFF3CTEncoder<B,Q>
+class BCHEncoder: public BCHCoder<B,Q,AFF3CTEncoder<B,Q>>
 {
 public:
-    BCHEncoder(): AFF3CTEncoder<B,Q>()
-    {
-        BCHHelper<B,Q>::initCoderParams(this->_encoderParamsUPtr, this->_decoderParamsUPtr);
-    }
+    using BaseClass = BCHCoder<B,Q,AFF3CTEncoder<B,Q>>;
 
+    BCHEncoder(): BaseClass(){}
     virtual ~BCHEncoder() = default;
 
-protected:
+private:
     void _resetCodec() override
     {
-        assert(!this->isActive());
-
-        this->_encoderPtr = nullptr;
-        BCHHelper<B,Q>::resetCodec(
-            this->_encoderParamsUPtr,
-            this->_decoderParamsUPtr,
-            this->_codecUPtr);
-
+        BaseClass::_resetCodec();
         this->_encoderPtr = this->_codecUPtr->get_encoder().get();
+
         assert(this->_encoderPtr);
     }
 };
@@ -81,17 +86,15 @@ protected:
 //
 
 template <typename B, typename Q, bool siho>
-class BCHDecoder: public AFF3CTDecoder<B,Q>
+class BCHDecoder: public BCHCoder<B,Q,AFF3CTDecoder<B,Q>>
 {
 public:
     using Class = BCHDecoder<B,Q,siho>;
-    using DecoderParamType = typename BCHHelper<B,Q>::DecoderParamType;
+    using BaseClass = BCHCoder<B,Q,AFF3CTDecoder<B,Q>>;
+    using DecoderParamType = typename BaseClass::DecoderParamType;
 
-    BCHDecoder():
-        AFF3CTDecoder<B,Q>(siho ? AFF3CTDecoderType::SIHO : AFF3CTDecoderType::HIHO)
+    BCHDecoder(): BaseClass(siho ? AFF3CTDecoderType::SIHO : AFF3CTDecoderType::HIHO)
     {
-        BCHHelper<B,Q>::initCoderParams(this->_encoderParamsUPtr, this->_decoderParamsUPtr);
-
         this->registerCall(this, POTHOS_FCN_TUPLE(Class, correctionPower));
         this->registerCall(this, POTHOS_FCN_TUPLE(Class, setCorrectionPower));
     }
@@ -114,20 +117,21 @@ public:
         this->_resetCodec();
     }
 
-protected:
+private:
     void _resetCodec() override
     {
-        assert(!this->isActive());
+        BaseClass::_resetCodec();
 
-        this->_decoderSIHOSPtr.reset();
-        this->_decoderHIHOSPtr.reset();
-        BCHHelper<B,Q>::resetCodec(
-            this->_encoderParamsUPtr,
-            this->_decoderParamsUPtr,
-            this->_codecUPtr);
-
-        if(siho) this->_decoderSIHOSPtr = this->_codecAsCodecSIHO()->get_decoder_siho();
-        else     this->_decoderHIHOSPtr = this->_codecAsCodecHIHO()->get_decoder_hiho();
+        if(siho)
+        {
+            this->_decoderSIHOSPtr = this->_codecAsCodecSIHO()->get_decoder_siho();
+            assert(this->_decoderSIHOSPtr);
+        }
+        else
+        {
+            this->_decoderHIHOSPtr = this->_codecAsCodecHIHO()->get_decoder_hiho();
+            assert(this->_decoderHIHOSPtr);
+        }
     }
 };
 

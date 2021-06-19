@@ -23,7 +23,7 @@ std::unique_ptr<aff3ct::module::Codec_polar<B,Q>> makePolarCodec(
     const aff3ct::factory::Frozenbits_generator::parameters &frozenBitsParams,
     const aff3ct::factory::Encoder_polar       ::parameters &encoderParams,
     const aff3ct::factory::Decoder_polar       ::parameters &decoderParams,
-    const aff3ct::factory::CRC                 ::parameters &crcParams,
+    const aff3ct::factory::CRC                 ::parameters *pCRCParams,
     const aff3ct::factory::Puncturer_polar     ::parameters *pPuncturerParams,
     std::unique_ptr<aff3ct::module::CRC<B>>& rCRCUPtr);
 

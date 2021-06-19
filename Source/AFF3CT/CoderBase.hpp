@@ -36,10 +36,10 @@ public:
 
     void activate() override;
 
-    size_t N() const;
+    virtual size_t N() const;
     virtual void setN(size_t N);
 
-    size_t K() const;
+    virtual size_t K() const;
     virtual void setK(size_t K);
 
     bool systematic() const;

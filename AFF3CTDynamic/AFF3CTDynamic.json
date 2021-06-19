@@ -34,7 +34,7 @@
                 "const aff3ct::factory::Frozenbits_generator::parameters&",
                 "const aff3ct::factory::Encoder_polar::parameters&",
                 "const aff3ct::factory::Decoder_polar::parameters&",
-                "const aff3ct::factory::CRC::parameters&",
+                "const aff3ct::factory::CRC::parameters*",
                 "const aff3ct::factory::Puncturer_polar::parameters*",
                 "std::unique_ptr<aff3ct::module::CRC<B>>&"
             ],

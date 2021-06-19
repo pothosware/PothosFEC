@@ -26,7 +26,7 @@ public:
     ):
         _crcParamsUPtr(new aff3ct::factory::CRC::parameters),
         _frozenBitsGeneratorParamsUPtr(new aff3ct::factory::Frozenbits_generator::parameters),
-        _puncturerParamsUPtr(new aff3ct::factory::Puncturer::parameters),
+        _puncturerParamsUPtr(new aff3ct::factory::Puncturer_polar::parameters),
         _throwIfActiveCallback(throwIfActiveCallback),
         _resetCodecCallback(resetCodecCallback)
     {}
@@ -36,7 +36,7 @@ public:
     inline void reset()
     {
         _crcParamsUPtr.reset(new aff3ct::factory::CRC::parameters);
-        _puncturerParamsUPtr.reset(new aff3ct::factory::Puncturer::parameters);
+        _puncturerParamsUPtr.reset(new aff3ct::factory::Puncturer_polar::parameters);
     }
 
     inline const aff3ct::factory::CRC::parameters& crcParams() const
@@ -53,7 +53,7 @@ public:
         return *_frozenBitsGeneratorParamsUPtr;
     }
 
-    inline const aff3ct::factory::Puncturer::parameters& puncturerParams() const
+    inline const aff3ct::factory::Puncturer_polar::parameters& puncturerParams() const
     {
         assert(_crcParamsUPtr);
 
@@ -77,7 +77,9 @@ public:
         assert(_frozenBitsGeneratorParamsUPtr);
         assert(_puncturerParamsUPtr);
 
+        _throwIfActiveCallback();
         _crcParamsUPtr->K = _frozenBitsGeneratorParamsUPtr->K = _puncturerParamsUPtr->K = static_cast<int>(K);
+        _resetCodecCallback();
     }
 
     inline size_t numFrames() const
@@ -94,7 +96,9 @@ public:
         assert(_crcParamsUPtr);
         assert(_puncturerParamsUPtr);
 
+        _throwIfActiveCallback();
         _crcParamsUPtr->n_frames = _puncturerParamsUPtr->n_frames = static_cast<int>(numFrames);
+        _resetCodecCallback();
     }
 
     inline size_t NCW() const
@@ -110,7 +114,9 @@ public:
         assert(_frozenBitsGeneratorParamsUPtr);
         assert(_puncturerParamsUPtr);
 
+        _throwIfActiveCallback();
         _frozenBitsGeneratorParamsUPtr->N_cw = _puncturerParamsUPtr->N_cw = static_cast<int>(NCW);
+        _resetCodecCallback();
     }
 
     inline size_t crcSize() const
@@ -124,7 +130,9 @@ public:
     {
         assert(_crcParamsUPtr);
 
+        _throwIfActiveCallback();
         _crcParamsUPtr->size = static_cast<int>(size);
+        _resetCodecCallback();
     }
 
     inline std::string crcType() const
@@ -139,7 +147,9 @@ public:
     {
         assert(_crcParamsUPtr);
 
+        _throwIfActiveCallback();
         _crcParamsUPtr->type = crcType;
+        _resetCodecCallback();
     }
 
     inline std::string crcImplementation() const
@@ -154,7 +164,9 @@ public:
     {
         assert(_crcParamsUPtr);
 
+        _throwIfActiveCallback();
         _crcParamsUPtr->implem = crcImplementation;
+        _resetCodecCallback();
     }
 
     inline size_t puncturerN() const
@@ -168,7 +180,9 @@ public:
     {
         assert(_puncturerParamsUPtr);
 
+        _throwIfActiveCallback();
         _puncturerParamsUPtr->N = static_cast<int>(N);
+        _resetCodecCallback();
     }
 
     inline std::string puncturerType() const
@@ -183,14 +197,16 @@ public:
     {
         assert(_puncturerParamsUPtr);
 
+        _throwIfActiveCallback();
         _puncturerParamsUPtr->type = puncturerType;
+        _resetCodecCallback();
     }
 
 private:
 
     std::unique_ptr<aff3ct::factory::CRC::parameters> _crcParamsUPtr;
     std::unique_ptr<aff3ct::factory::Frozenbits_generator::parameters> _frozenBitsGeneratorParamsUPtr;
-    std::unique_ptr<aff3ct::factory::Puncturer::parameters> _puncturerParamsUPtr;
+    std::unique_ptr<aff3ct::factory::Puncturer_polar::parameters> _puncturerParamsUPtr;
     SetterCallback _throwIfActiveCallback;
     SetterCallback _resetCodecCallback;
 };
@@ -221,83 +237,128 @@ struct PolarHelper
         const PolarParamsWrapper& polarParamsWrapper,
         bool usePuncturer,
         bool useCRC,
-        std::unique_ptr<aff3ct::module::CRC<B>>& rCRCUPtr,
         std::unique_ptr<aff3ct::module::Codec<B,Q>>& rCodecUPtr)
     {
         assert(encoderParamsUPtr);
         assert(decoderParamsUPtr);
 
-        /*
+        std::unique_ptr<aff3ct::module::CRC<B>> crcUPtr;
+
+        const auto *pPuncturerParams = usePuncturer ? &polarParamsWrapper.puncturerParams() : nullptr;
+        const auto *pCRCParams = useCRC ? &polarParamsWrapper.crcParams() : nullptr;
         rCodecUPtr = AFF3CTDynamic::makePolarCodec<B,Q>(
+                         polarParamsWrapper.frozenBitsGeneratorParams(),
                          *safeDynamicCast<EncoderParamType>(encoderParamsUPtr),
                          *safeDynamicCast<DecoderParamType>(decoderParamsUPtr),
-                         polarParamsWrapper.params());
+                         pCRCParams,
+                         pPuncturerParams,
+                         crcUPtr);
         assert(rCodecUPtr);
-        */
     }
 };
 
-/*
+#define REGISTER_POLAR_CALL(fcn) \
+    this->registerCall(&this->_polarParamsWrapper, #fcn, &PolarParamsWrapper::fcn)
 
-#define REGISTER_INTERLEAVER_CALL(name, fcn) \
-    this->registerCall(&this->_interleaverParamsWrapper, name, &InterleaverParamsWrapper::fcn)
-
-#define REGISTER_INTERLEAVER_CALLS() \
-    REGISTER_INTERLEAVER_CALL("interleaverSize", size); \
-    REGISTER_INTERLEAVER_CALL("setInterleaverSize", setSize); \
-    REGISTER_INTERLEAVER_CALL("interleaverType", type); \
-    REGISTER_INTERLEAVER_CALL("setInterleaverType", setType); \
-    REGISTER_INTERLEAVER_CALL("interleaverPath", path); \
-    REGISTER_INTERLEAVER_CALL("setInterleaverPath", setPath); \
-    REGISTER_INTERLEAVER_CALL("interleaverReadOrder", readOrder); \
-    REGISTER_INTERLEAVER_CALL("setInterleaverReadOrder", setReadOrder); \
-    REGISTER_INTERLEAVER_CALL("interleaverNumColumns", numColumns); \
-    REGISTER_INTERLEAVER_CALL("setInterleaverNumColumns", setNumColumns); \
-    REGISTER_INTERLEAVER_CALL("interleaverNumFrames", numFrames); \
-    REGISTER_INTERLEAVER_CALL("setInterleaverNumFrames", setNumFrames); \
-    REGISTER_INTERLEAVER_CALL("interleaverSeed", seed); \
-    REGISTER_INTERLEAVER_CALL("setInterleaverSeed", setSeed); \
-    REGISTER_INTERLEAVER_CALL("interleaverUniform", uniform); \
-    REGISTER_INTERLEAVER_CALL("setInterleaverUniform", setUniform); \
+#define REGISTER_POLAR_CALLS() \
+    REGISTER_POLAR_CALL(numFrames); \
+    REGISTER_POLAR_CALL(setNumFrames); \
+    REGISTER_POLAR_CALL(NCW); \
+    REGISTER_POLAR_CALL(setNCW); \
+    REGISTER_POLAR_CALL(crcSize); \
+    REGISTER_POLAR_CALL(setCRCSize); \
+    REGISTER_POLAR_CALL(crcType); \
+    REGISTER_POLAR_CALL(setCRCType); \
+    REGISTER_POLAR_CALL(crcImplementation); \
+    REGISTER_POLAR_CALL(setCRCImplementation); \
+    REGISTER_POLAR_CALL(puncturerN); \
+    REGISTER_POLAR_CALL(setPuncturerN); \
+    REGISTER_POLAR_CALL(puncturerType); \
+    REGISTER_POLAR_CALL(setPuncturerType); \
 
 //
 // Encoder
 //
 
 template <typename B, typename Q>
-class RAEncoder: public AFF3CTEncoder<B,Q>
+class PolarEncoder: public AFF3CTEncoder<B,Q>
 {
 public:
-    using Class = RAEncoder<B,Q>;
+    using Class = PolarEncoder<B,Q>;
 
-    RAEncoder():
+    PolarEncoder():
         AFF3CTEncoder<B,Q>(),
-        _interleaverParamsWrapper(
+        _polarParamsWrapper(
             [this](){this->_throwIfBlockIsActive();},
-            [this](){this->_resetCodec();})
+            [this](){this->_resetCodec();}),
+        _usePuncturer(false),
+        _useCRC(false)
     {
-        RAHelper<B,Q>::initCoderParams(
+        PolarHelper<B,Q>::initCoderParams(
             this->_encoderParamsUPtr,
             this->_decoderParamsUPtr,
-            this->_interleaverParamsWrapper);
+            this->_polarParamsWrapper);
 
-        REGISTER_INTERLEAVER_CALLS();
+        REGISTER_POLAR_CALLS();
+
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, usePuncturer));
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setUsePuncturer));
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, useCRC));
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setUseCRC));
     }
 
-    virtual ~RAEncoder() = default;
+    virtual ~PolarEncoder() = default;
+
+    void setK(size_t K) override
+    {
+        this->_throwIfBlockIsActive();
+
+        AFF3CTCoderBase<B,Q>::setK(K);
+        _polarParamsWrapper.setK(K);
+
+        this->_resetCodec();
+    }
+
+    bool usePuncturer() const
+    {
+        return _usePuncturer;
+    }
+
+    void setUsePuncturer(bool usePuncturer)
+    {
+        this->_throwIfBlockIsActive();
+        _usePuncturer = usePuncturer;
+        this->_resetCodec();
+    }
+
+    bool useCRC() const
+    {
+        return _useCRC;
+    }
+
+    void setUseCRC(bool useCRC)
+    {
+        this->_throwIfBlockIsActive();
+        _useCRC = useCRC;
+        this->_resetCodec();
+    }
 
 protected:
-    InterleaverParamsWrapper _interleaverParamsWrapper;
+    PolarParamsWrapper _polarParamsWrapper;
+    bool _usePuncturer;
+    bool _useCRC;
 
     void _resetCodec() override
     {
         assert(!this->isActive());
 
         this->_encoderPtr = nullptr;
-        RAHelper<B,Q>::resetCodec(
+        PolarHelper<B,Q>::resetCodec(
             this->_encoderParamsUPtr,
             this->_decoderParamsUPtr,
-            this->_interleaverParamsWrapper,
+            this->_polarParamsWrapper,
+            _usePuncturer,
+            _useCRC,
             this->_codecUPtr);
 
         this->_encoderPtr = this->_codecUPtr->get_encoder().get();
@@ -309,67 +370,91 @@ protected:
 // Decoder
 //
 
-
-template <typename B, typename Q>
-class RADecoder: public AFF3CTDecoder<B,Q>
+template <typename B, typename Q, bool siho>
+class PolarDecoder: public AFF3CTDecoder<B,Q>
 {
 public:
-    using Class = RADecoder<B,Q>;
-    using DecoderParamType = typename RAHelper<B,Q>::DecoderParamType;
+    using Class = PolarDecoder<B,Q,siho>;
+    using DecoderParamType = typename PolarHelper<B,Q>::DecoderParamType;
 
-    RADecoder():
-        AFF3CTDecoder<B,Q>(AFF3CTDecoderType::SIHO),
-        _interleaverParamsWrapper(
+    PolarDecoder():
+        AFF3CTDecoder<B,Q>(siho ? AFF3CTDecoderType::SIHO : AFF3CTDecoderType::SISO),
+        _polarParamsWrapper(
             [this](){this->_throwIfBlockIsActive();},
-            [this](){this->_resetCodec();})
+            [this](){this->_resetCodec();}),
+        _usePuncturer(false),
+        _useCRC(false)
     {
-        RAHelper<B,Q>::initCoderParams(
+        PolarHelper<B,Q>::initCoderParams(
             this->_encoderParamsUPtr,
             this->_decoderParamsUPtr,
-            this->_interleaverParamsWrapper);
+            this->_polarParamsWrapper);
 
-        REGISTER_INTERLEAVER_CALLS();
+        REGISTER_POLAR_CALLS();
 
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, numIterations));
-        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setNumIterations));
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, usePuncturer));
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setUsePuncturer));
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, useCRC));
+        this->registerCall(this, POTHOS_FCN_TUPLE(Class, setUseCRC));
     }
 
-    virtual ~RADecoder() = default;
+    virtual ~PolarDecoder() = default;
 
-    size_t numIterations() const
+    void setK(size_t K) override
     {
-        assert(this->_decoderParamsUPtr);
+        this->_throwIfBlockIsActive();
 
-        return static_cast<size_t>(safeDynamicCast<DecoderParamType>(this->_decoderParamsUPtr)->n_ite);
+        AFF3CTCoderBase<B,Q>::setK(K);
+        _polarParamsWrapper.setK(K);
+
+        this->_resetCodec();
     }
 
-    void setNumIterations(size_t numIterations)
+    bool usePuncturer() const
     {
-        assert(this->_decoderParamsUPtr);
+        return _usePuncturer;
+    }
 
-        if(0 == numIterations)
-        {
-            throw Pothos::RangeException("numIterations must be > 0");
-        }
+    void setUsePuncturer(bool usePuncturer)
+    {
+        this->_throwIfBlockIsActive();
+        _usePuncturer = usePuncturer;
+        this->_resetCodec();
+    }
 
-        safeDynamicCast<DecoderParamType>(this->_decoderParamsUPtr)->n_ite = static_cast<int>(numIterations);
+    bool useCRC() const
+    {
+        return _useCRC;
+    }
+
+    void setUseCRC(bool useCRC)
+    {
+        this->_throwIfBlockIsActive();
+        _useCRC = useCRC;
+        this->_resetCodec();
     }
 
 protected:
-    InterleaverParamsWrapper _interleaverParamsWrapper;
+    PolarParamsWrapper _polarParamsWrapper;
+    bool _usePuncturer;
+    bool _useCRC;
 
     void _resetCodec() override
     {
         assert(!this->isActive());
 
+        this->_decoderSISOSPtr.reset();
         this->_decoderSIHOSPtr.reset();
-        RAHelper<B,Q>::resetCodec(
+        PolarHelper<B,Q>::resetCodec(
             this->_encoderParamsUPtr,
             this->_decoderParamsUPtr,
-            this->_interleaverParamsWrapper,
+            this->_polarParamsWrapper,
+            _usePuncturer,
+            _useCRC,
             this->_codecUPtr);
 
-        this->_decoderSIHOSPtr = this->_codecAsCodecSIHO()->get_decoder_siho();
+        if(siho) this->_decoderSIHOSPtr = this->_codecAsCodecSIHO()->get_decoder_siho();
+        else     this->_decoderSISOSPtr = this->_codecAsCodecSISO()->get_decoder_siso();
     }
 };
 
@@ -377,38 +462,37 @@ protected:
 // Registration
 //
 
-static Pothos::Block* makeRAEncoderBlock(const Pothos::DType& dtype)
+static Pothos::Block* makePolarEncoderBlock(const Pothos::DType& dtype)
 {
 #define IfTypeThenEncoder(T) \
-    if(doesDTypeMatch<T>(dtype)) return new RAEncoder<B, AFF3CTTypeTraits<B>::Q>();
+    if(doesDTypeMatch<T>(dtype)) return new PolarEncoder<B, AFF3CTTypeTraits<B>::Q>();
 
     IfTypeThenEncoder(B_8)
     IfTypeThenEncoder(B_16)
     IfTypeThenEncoder(B_32)
     IfTypeThenEncoder(B_64)
 
-    throw Pothos::InvalidArgumentException("RAEncoder: invalid type "+dtype.toString());
+    throw Pothos::InvalidArgumentException("PolarEncoder: invalid type "+dtype.toString());
 }
 
-static Pothos::Block* makeRADecoderBlock(const Pothos::DType& dtype)
+static Pothos::Block* makePolarDecoderBlock(const Pothos::DType& dtype, const std::string& mode)
 {
 #define IfTypeThenDecoder(T) \
-    if(doesDTypeMatch<T>(dtype)) return new RADecoder<B, AFF3CTTypeTraits<B>::Q>(); \
+    if(doesDTypeMatch<T>(dtype) && (mode == "SIHO")) return new PolarDecoder<B, AFF3CTTypeTraits<B>::Q, true>(); \
+    if(doesDTypeMatch<T>(dtype) && (mode == "SISO")) return new PolarDecoder<B, AFF3CTTypeTraits<B>::Q, false>();
 
     IfTypeThenDecoder(B_8)
     IfTypeThenDecoder(B_16)
     IfTypeThenDecoder(B_32)
     IfTypeThenDecoder(B_64)
 
-    throw Pothos::InvalidArgumentException("RADecoder: invalid type "+dtype.toString());
+    throw Pothos::InvalidArgumentException("PolarDecoder: invalid type "+dtype.toString() + ", mode "+mode);
 }
 
-static Pothos::BlockRegistry registerRAEncoder(
-    "/fec/ra_encoder",
-    &makeRAEncoderBlock);
+static Pothos::BlockRegistry registerPolarEncoder(
+    "/fec/polar_encoder",
+    &makePolarEncoderBlock);
 
-static Pothos::BlockRegistry registerRADecoder(
-    "/fec/ra_decoder",
-    &makeRADecoderBlock);
-
-*/
+static Pothos::BlockRegistry registerPolarDecoder(
+    "/fec/polar_decoder",
+    &makePolarDecoderBlock);

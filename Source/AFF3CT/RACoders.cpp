@@ -235,7 +235,7 @@ struct RAHelper
     REGISTER_INTERLEAVER_CALL("interleaverSeed", seed); \
     REGISTER_INTERLEAVER_CALL("setInterleaverSeed", setSeed); \
     REGISTER_INTERLEAVER_CALL("interleaverUniform", uniform); \
-    REGISTER_INTERLEAVER_CALL("setInterleaverUniform", setUniform); \
+    REGISTER_INTERLEAVER_CALL("setInterleaverUniform", setUniform);
 
 //
 // Encoder

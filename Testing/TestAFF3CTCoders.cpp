@@ -111,6 +111,40 @@ POTHOS_TEST_BLOCK("/fec/tests", test_ldpc_dvbs2_coders)
 }
 
 //
+// Polar coders
+//
+
+template <typename T>
+static void testPolarCoders()
+{
+    const auto dtype = Pothos::DType(typeid(T));
+
+    std::cout << "Testing " << dtype.toString() << "..." << std::endl;
+
+    auto encoderBlock = Pothos::BlockRegistry::make(
+                            "/fec/polar_encoder",
+                            dtype);
+
+    auto decoderBlockSISO = Pothos::BlockRegistry::make(
+                                "/fec/polar_decoder",
+                                dtype,
+                                "SISO");
+
+    auto decoderBlockSIHO = Pothos::BlockRegistry::make(
+                                "/fec/polar_decoder",
+                                dtype,
+                                "SIHO");
+}
+
+POTHOS_TEST_BLOCK("/fec/tests", test_polar_coders)
+{
+    testPolarCoders<std::int8_t>();
+    testPolarCoders<std::int16_t>();
+    testPolarCoders<std::int32_t>();
+    testPolarCoders<std::int64_t>();
+}
+
+//
 // RA coders
 //
 

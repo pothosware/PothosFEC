@@ -139,6 +139,7 @@ public:
         this->_throwIfBlockIsActive();
 
         safeDynamicCast<EncoderParamType>(this->_encoderParamsUPtr)->G_path = path;
+        this->_resetCodec();
     }
 
     std::string HMatrixPath() const
@@ -164,6 +165,7 @@ public:
 
         safeDynamicCast<EncoderParamType>(this->_encoderParamsUPtr)->H_path = path;
         safeDynamicCast<DecoderParamType>(this->_decoderParamsUPtr)->H_path = path;
+        this->_resetCodec();
     }
 
 protected:
@@ -274,6 +276,7 @@ public:
         this->_throwIfBlockIsActive();
 
         safeDynamicCast<EncoderParamType>(this->_encoderParamsUPtr)->G_path = path;
+        this->_resetCodec();
     }
 
     std::string HMatrixPath() const
@@ -299,6 +302,7 @@ public:
 
         safeDynamicCast<EncoderParamType>(this->_encoderParamsUPtr)->H_path = path;
         safeDynamicCast<DecoderParamType>(this->_decoderParamsUPtr)->H_path = path;
+        this->_resetCodec();
     }
 
 protected:

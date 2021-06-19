@@ -323,6 +323,7 @@ public:
     void setNumIterations(size_t numIterations)
     {
         assert(this->_decoderParamsUPtr);
+        this->_throwIfBlockIsActive();
 
         if(0 == numIterations)
         {
@@ -330,6 +331,7 @@ public:
         }
 
         safeDynamicCast<DecoderParamType>(this->_decoderParamsUPtr)->n_ite = static_cast<int>(numIterations);
+        this->_resetCodec();
     }
 
 protected:

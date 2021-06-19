@@ -242,8 +242,6 @@ struct PolarHelper
         assert(encoderParamsUPtr);
         assert(decoderParamsUPtr);
 
-        std::unique_ptr<aff3ct::module::CRC<B>> crcUPtr;
-
         const auto *pPuncturerParams = usePuncturer ? &polarParamsWrapper.puncturerParams() : nullptr;
         const auto *pCRCParams = useCRC ? &polarParamsWrapper.crcParams() : nullptr;
         rCodecUPtr = AFF3CTDynamic::makePolarCodec<B,Q>(
@@ -251,8 +249,7 @@ struct PolarHelper
                          *safeDynamicCast<EncoderParamType>(encoderParamsUPtr),
                          *safeDynamicCast<DecoderParamType>(decoderParamsUPtr),
                          pCRCParams,
-                         pPuncturerParams,
-                         crcUPtr);
+                         pPuncturerParams);
         assert(rCodecUPtr);
     }
 };

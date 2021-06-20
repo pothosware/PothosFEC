@@ -63,6 +63,16 @@ std::unique_ptr<aff3ct::module::Codec_SIHO<B,Q>> makeRACodec(
     return simdMaker(encParams, decParams, itlParams);
 }
 
+template <typename B, typename Q>
+std::unique_ptr<aff3ct::module::Codec_SIHO<B,Q>> makeRepetitionCodec(
+    const aff3ct::factory::Encoder_repetition::parameters& encParams,
+    const aff3ct::factory::Decoder_repetition::parameters& decParams)
+{
+    static const auto simdMaker = AFF3CTDynamic::makeRepetitionCodecDispatch<B,Q>();
+
+    return simdMaker(encParams, decParams);
+}
+
 #else
 
 template <typename B, typename Q>
@@ -110,6 +120,14 @@ std::unique_ptr<aff3ct::module::Codec_SIHO<B,Q>> makeRACodec(
     return std::unique_ptr<aff3ct::module::Codec_RA<B,Q>>(new aff3ct::module::Codec_RA<B,Q>(encParams, decParams, itlParams));
 }
 
+template <typename B, typename Q>
+std::unique_ptr<aff3ct::module::Codec_SIHO<B,Q>> makeRepetitionCodec(
+    const aff3ct::factory::Encoder_repetition::parameters& encParams,
+    const aff3ct::factory::Decoder_repetition::parameters& decParams)
+{
+    return std::unique_ptr<aff3ct::module::Codec_SIHO<B,Q>>(new aff3ct::module::Codec_repetition<B,Q>(encParams, decParams));
+}
+
 #endif
 
 #define SPECIALIZE_TMPLS(T1,T2) \
@@ -134,7 +152,11 @@ std::unique_ptr<aff3ct::module::Codec_SIHO<B,Q>> makeRACodec(
     std::unique_ptr<aff3ct::module::Codec_SIHO<T1,T2>> makeRACodec( \
         const aff3ct::factory::Encoder_RA ::parameters &encParams, \
         const aff3ct::factory::Decoder_RA ::parameters &decParams, \
-        const aff3ct::factory::Interleaver::parameters &itlParams);
+        const aff3ct::factory::Interleaver::parameters &itlParams); \
+    template \
+    std::unique_ptr<aff3ct::module::Codec_SIHO<T1,T2>> makeRepetitionCodec( \
+        const aff3ct::factory::Encoder_repetition::parameters&, \
+        const aff3ct::factory::Decoder_repetition::parameters&);
 
 SPECIALIZE_TMPLS(B_8,Q_8)
 SPECIALIZE_TMPLS(B_16,Q_16)

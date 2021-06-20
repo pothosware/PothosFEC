@@ -6,6 +6,7 @@
 #include "LDPCCodec.hpp"
 #include "PolarCodec.hpp"
 #include "RACodec.hpp"
+#include "RepetitionCodec.hpp"
 
 #include <Tools/types.h>
 
@@ -56,6 +57,14 @@ std::unique_ptr<aff3ct::module::Codec_SIHO<B,Q>> makeRACodec(
     return std::unique_ptr<aff3ct::module::Codec_SIHO<B,Q>>(new RACodec<B,Q>(encParams, decParams, itlParams));
 }
 
+template <typename B, typename Q>
+std::unique_ptr<aff3ct::module::Codec_SIHO<B,Q>> makeRepetitionCodec(
+    const aff3ct::factory::Encoder_repetition::parameters& encParams,
+    const aff3ct::factory::Decoder_repetition::parameters& decParams)
+{
+    return std::unique_ptr<aff3ct::module::Codec_SIHO<B,Q>>(new RepetitionCodec<B,Q>(encParams, decParams));
+}
+
 #define SPECIALIZE_TMPLS(T1,T2) \
     template \
     std::unique_ptr<aff3ct::module::Codec_SIHO_HIHO<T1,T2>> makeBCHCodec( \
@@ -78,7 +87,11 @@ std::unique_ptr<aff3ct::module::Codec_SIHO<B,Q>> makeRACodec(
     std::unique_ptr<aff3ct::module::Codec_SIHO<T1,T2>> makeRACodec( \
         const aff3ct::factory::Encoder_RA::parameters&, \
         const aff3ct::factory::Decoder_RA::parameters&, \
-        const aff3ct::factory::Interleaver::parameters&);
+        const aff3ct::factory::Interleaver::parameters&); \
+    template \
+    std::unique_ptr<aff3ct::module::Codec_SIHO<T1,T2>> makeRepetitionCodec( \
+        const aff3ct::factory::Encoder_repetition::parameters&, \
+        const aff3ct::factory::Decoder_repetition::parameters&);
 
 SPECIALIZE_TMPLS(B_8,Q_8)
 SPECIALIZE_TMPLS(B_16,Q_16)

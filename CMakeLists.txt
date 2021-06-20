@@ -75,6 +75,7 @@ POTHOS_MODULE_UTIL(
         Source/AFF3CT/LDPCCoders.cpp
         Source/AFF3CT/PolarCoders.cpp
         Source/AFF3CT/RACoders.cpp
+        Source/AFF3CT/RepetitionCoders.cpp
 
         Testing/CoderTests.cpp
         Testing/TestAFF3CTCoders.cpp

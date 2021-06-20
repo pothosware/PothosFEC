@@ -171,3 +171,31 @@ POTHOS_TEST_BLOCK("/fec/tests", test_ra_coders)
     testRACoders<std::int32_t>();
     testRACoders<std::int64_t>();
 }
+
+//
+// RA coders
+//
+
+template <typename T>
+static void testRepetitionCoders()
+{
+    const auto dtype = Pothos::DType(typeid(T));
+
+    std::cout << "Testing " << dtype.toString() << "..." << std::endl;
+
+    auto encoderBlock = Pothos::BlockRegistry::make(
+                            "/fec/repetition_encoder",
+                            dtype);
+
+    auto decoderBlock = Pothos::BlockRegistry::make(
+                            "/fec/repetition_decoder",
+                            dtype);
+}
+
+POTHOS_TEST_BLOCK("/fec/tests", test_repetition_coders)
+{
+    testRepetitionCoders<std::int8_t>();
+    testRepetitionCoders<std::int16_t>();
+    testRepetitionCoders<std::int32_t>();
+    testRepetitionCoders<std::int64_t>();
+}

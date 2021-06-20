@@ -33,4 +33,9 @@ std::unique_ptr<aff3ct::module::Codec_SIHO<B,Q>> makeRACodec(
     const aff3ct::factory::Decoder_RA ::parameters &decParams,
     const aff3ct::factory::Interleaver::parameters &itlParams);
 
+template <typename B, typename Q>
+std::unique_ptr<aff3ct::module::Codec_SIHO<B,Q>> makeRepetitionCodec(
+    const aff3ct::factory::Encoder_repetition::parameters& encParams,
+    const aff3ct::factory::Decoder_repetition::parameters& decParams);
+
 }

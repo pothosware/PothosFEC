@@ -21,6 +21,10 @@ if(SIMD_SUPPORTED)
         RACodec.cpp
         RADecoder.cpp
         RADecoderFactory.cpp
+        RepetitionCodec.cpp
+        RepetitionDecoder.cpp
+        RepetitionDecoderFactory.cpp
+        RepetitionDecoderFast.cpp
         SIMDEntryPoints.cpp)
 
     PothosGenerateSIMDSources(
